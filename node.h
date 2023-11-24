@@ -343,6 +343,10 @@ public:
 	for (it = (mynode)->neighbors.begin(); it != (mynode)->neighbors.end(); it++) \
 		if ((*it)->node != (mydad))
 
+#define FOR_NEIGHBOR_DAD(mynode, mydad, it) \
+	for (NeighborVec::iterator it = (mynode)->neighbors.begin(); it != (mynode)->neighbors.end(); it++) \
+		if ((*it)->node == (mydad))
+
 #define FOR_NEIGHBOR_IT(mynode, mydad, it) \
 	for (NeighborVec::iterator it = (mynode)->neighbors.begin(); it != (mynode)->neighbors.end(); it++) \
 		if ((*it)->node != (mydad))

@@ -317,6 +317,10 @@ public:
         int computePartialParsimonyMutation(PhyloNeighbor *dad_branch, PhyloNode *dad);
 
         std::vector<std::pair<PhyloNode*, PhyloNeighbor*> > breadth_first_expansion();
+
+        void depth_first_search(PhyloNode *node, PhyloNode *dad);
+
+        void depth_first_search();
         
         std::vector<Mutation> cur_missing_sample_mutations, cur_ancestral_mutations;
         std::vector<int> visited_missing_sample_mutations, visited_ancestral_mutations;
@@ -332,6 +336,25 @@ public:
         void checkMutationBranch(vector<int> &pos, PhyloNeighbor *dad_branch, PhyloNode *dad, int *branch_subst = NULL);
 
         string checkPartialMutation(vector<int> &pos, PhyloNeighbor *dad_branch, PhyloNode *dad);
+
+        PhyloNode* findNode(PhyloNode *node, PhyloNode *dad, string name);
+
+        PhyloNode* findNode(string name);
+
+        int matOptimizeSubtreeRegrafting(int cur_score, int cur_depth, PhyloNode* node1, PhyloNode* dad1, PhyloNode* orig_node1,
+                PhyloNode* orig_node2, PhyloNode* node2, PhyloNode* dad2);
+
+        bool checkBranch(PhyloNode* node1, PhyloNode* node2);
+
+        void initCandidate(vector<PhyloNode*> src, int sprDist);
+
+        int tryMatOptimize(int oldScore, bool canRemove, PhyloNode *node, PhyloNode *dad, int sprDist);
+
+        void tryMatOptimize(int sprDist);
+
+        void saveMutationBranch(PhyloNode *node, PhyloNode *dad);
+
+        void recalculateMutationBranch(PhyloNode *node, PhyloNode *dad);
 
         virtual void copyTree(MTree *tree);
         /**

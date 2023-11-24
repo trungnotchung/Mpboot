@@ -27,7 +27,6 @@ class PhyloNeighbor : public Neighbor {
     friend class PhyloTree;
     friend class IQTree;
     friend class PhyloSuperTree;
-
 public:
     friend class TinaTree;
     friend class PhyloSuperTreePlen;
@@ -44,6 +43,7 @@ public:
         lh_scale_factor = 0.0;
         partial_pars = NULL;
         mutations.clear();
+        canMove = 0;
     }
 
     /**
@@ -58,6 +58,7 @@ public:
         lh_scale_factor = 0.0;
         partial_pars = NULL;
         mutations.clear();
+        canMove = 0;
     }
 
     /**
@@ -82,11 +83,37 @@ public:
 
     std::vector<Mutation> mutations;
 
+    std::vector<Mutation> saved_mutations;
+
     int num_leaves, distance;
 
     void clear_mutations();
 
     void add_mutation(Mutation mut);
+
+    // mark this branch can be moved.
+    void mark_can_move();
+
+    // unmark this branch can be moved.
+    void unmark_can_move();
+
+    // check if this branch can be moved.
+    bool check_can_move();
+
+    // mark this branch can do spr.
+    void mark_can_do_spr();
+
+    // unmark this branch can do spr.
+    void unmark_can_do_spr();
+
+    // check if this branch can do spr.
+    bool check_can_do_spr();
+
+    // save this branch's mutations.
+    void save_mutations();
+
+    // restore this branch's mutations.
+    void restore_mutation();
 
 private:
 
@@ -115,6 +142,10 @@ private:
      */
     UINT *partial_pars;
 
+    /**
+     * check if this branch can be movedor do SPR 
+    */
+    int canMove;
 };
 
 /**
@@ -156,6 +187,12 @@ public:
      */
     void init();
 
+    void setMissingNode(int index);
+
+    bool checkMissingNode();
+
+    int getMissingIndex();
+
     /**
         add a neighbor
         @param node the neighbor node
@@ -177,6 +214,8 @@ public:
     void clearReversePartialLh(PhyloNode *dad);
 
     PhyloNode *dad;
+
+    int missingIndex;
 };
 
 
