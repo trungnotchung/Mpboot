@@ -1181,6 +1181,9 @@ int PhyloTree::computeParsimonyScore(int ptn, int& states, PhyloNode* node, Phyl
             score++;
         }
     }
+    // cout << "name " << node->name << endl;
+    // cout << "id and states " << node->id << " " << states << endl;
+    // cout << "socre " << score << endl;
     return score;
 }
 
@@ -1191,7 +1194,10 @@ int PhyloTree::computeParsimonyScore() {
     for (int ptn = 0; ptn < aln->size(); ptn++)
         if (!aln->at(ptn).is_const) {
             int states;
+            // int res = computeParsimonyScore(ptn, states) * aln->at(ptn).frequency;
+            // cout << res << endl;
             score += computeParsimonyScore(ptn, states) * (*aln)[ptn].frequency;
+            cout << score << endl;
         }
     return score;
 }

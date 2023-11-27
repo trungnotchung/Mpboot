@@ -36,7 +36,7 @@
 #include "placement.h"
 #include <algorithm>
 
-int addMoreRowIQTree(IQTree* tree, Alignment* alignment)
+int addMoreRowIQTree(IQTree *tree, Alignment *alignment)
 {
 	auto startTime = getCPUTime();
 	// add more K row to this tree
@@ -84,7 +84,7 @@ int addMoreRowIQTree(IQTree* tree, Alignment* alignment)
 }
 
 const double e = 2.7182818;
-int addMoreRowPLL(IQTree* tree, Alignment* alignment, Params& params)
+int addMoreRowPLL(IQTree *tree, Alignment *alignment, Params &params)
 {
 	auto startTime = getCPUTime();
 	int k = alignment->remainSeq.size();
@@ -115,7 +115,7 @@ int addMoreRowPLL(IQTree* tree, Alignment* alignment, Params& params)
 	}
 
 	int numCandidate = 5;
-	vector<vector<int> > candidates;
+	vector<vector<int>> candidates;
 	vector<int> candidateScore;
 
 	// init 100 permutation
@@ -204,7 +204,7 @@ int addMoreRowPLL(IQTree* tree, Alignment* alignment, Params& params)
 	return bestScore;
 }
 
-int updatePermutation(IQTree* tree, Alignment* alignment, Params& params, const vector<int> permCol, vector<vector<int> >& candidates, vector<int>& candidateScore)
+int updatePermutation(IQTree *tree, Alignment *alignment, Params &params, const vector<int> permCol, vector<vector<int>> &candidates, vector<int> &candidateScore)
 {
 	cout << "we are here\n";
 	assert((int)candidates.size() > 0);
@@ -276,7 +276,9 @@ int updatePermutation(IQTree* tree, Alignment* alignment, Params& params, const 
 	return bestScore;
 }
 
-int computeParsimonyPermutation(IQTree* tree, Alignment* alignment, Params& params, const vector<int>& permCol, const vector<int>& perm)
+
+
+int computeParsimonyPermutation(IQTree *tree, Alignment *alignment, Params &params, const vector<int> &permCol, const vector<int> &perm)
 {
 	IQTree newTree;
 	(newTree).copyPhyloTree(tree);
@@ -288,207 +290,251 @@ int computeParsimonyPermutation(IQTree* tree, Alignment* alignment, Params& para
 	return score;
 }
 
-void addMoreRowMutation(Params& params)
+void configLeafNames(IQTree* tree, Node *node, Node * dad)
 {
-    Alignment* alignment;
-    IQTree* tree;
-
-    /****************** read in alignment **********************/
-    if (params.partition_file)
-    {
-    	// Partition model analysis
-    	if (params.partition_type)
-    	{
-    		// since nni5 does not work yet, stop the programm
-    		if (params.nni5)
-    			outError("-nni5 option is unsupported yet for proportitional partition model. please use -nni1 option");
-    		if (params.aLRT_replicates)
-    			outError("-alrt option is unsupported yet for proportitional partition model");
-    		// initialize supertree - Proportional Edges case, "-spt p" option
-    		tree = new PhyloSuperTreePlen(params);
-    	}
-    	else
-    	{
-    		// initialize supertree stuff if user specifies partition file with -sp option
-    		tree = new PhyloSuperTree(params);
-    	}
-    	// this alignment will actually be of type SuperAlignment
-    	alignment = tree->aln;
+    if (node->isLeaf()) {
+        node->id = tree->aln->getSeqID(node->name);
     }
-    else if (params.maximum_parsimony && params.sankoff_cost_file)
-    {
-    	alignment = new Alignment(params.aln_file, params.sequence_type, params.intype);
-    	tree = new ParsTree(alignment);
-    	dynamic_cast<ParsTree*>(tree)->initParsData(&params);
-    }
-    else
-    {
-    	alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
-    	if (params.maximum_parsimony && !params.sankoff_cost_file && params.condense_parsimony_equiv_sites)
-    	{
-    		Alignment* aln = new Alignment();
-    		aln->condenseParsimonyEquivalentSites(alignment);
-    		delete alignment;
-    		alignment = aln;
-    	}
-    	if (params.analyze_alignment) {
-    		alignment->analyzeAlignment();
-    	}
-    	tree = new IQTree(alignment);
-    }
+    FOR_NEIGHBOR_IT(node, dad, it)configLeafNames(tree, (*it)->node, node);
+}
 
-    //	if(params.maximum_parsimony && (params.gbo_replicates || params.sankoff_cost_file)){
-    if (params.maximum_parsimony && (params.sort_alignment || params.sankoff_cost_file))
-    {
-    	optimizeAlignment(tree, params); // Diep: this is to rearrange columns for better speed in REPS
-    }
+void addMoreRowMutation(Params &params)
+{
+	Alignment *alignment;
+	IQTree *tree;
 
-    string original_model = params.model_name;
+	/****************** read in alignment **********************/
+	if (params.partition_file)
+	{
+		// Partition model analysis
+		if (params.partition_type)
+		{
+			// since nni5 does not work yet, stop the programm
+			if (params.nni5)
+				outError("-nni5 option is unsupported yet for proportitional partition model. please use -nni1 option");
+			if (params.aLRT_replicates)
+				outError("-alrt option is unsupported yet for proportitional partition model");
+			// initialize supertree - Proportional Edges case, "-spt p" option
+			tree = new PhyloSuperTreePlen(params);
+		}
+		else
+		{
+			// initialize supertree stuff if user specifies partition file with -sp option
+			tree = new PhyloSuperTree(params);
+		}
+		// this alignment will actually be of type SuperAlignment
+		alignment = tree->aln;
+	}
+	else if (params.maximum_parsimony && params.sankoff_cost_file)
+	{
+		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype);
+		tree = new ParsTree(alignment);
+		dynamic_cast<ParsTree *>(tree)->initParsData(&params);
+	}
+	else
+	{
+		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
+		if (params.maximum_parsimony && !params.sankoff_cost_file && params.condense_parsimony_equiv_sites)
+		{
+			Alignment *aln = new Alignment();
+			aln->condenseParsimonyEquivalentSites(alignment);
+			delete alignment;
+			alignment = aln;
+		}
+		if (params.analyze_alignment)
+		{
+			alignment->analyzeAlignment();
+		}
+		tree = new IQTree(alignment);
+	}
 
-    vector<ModelInfo> model_info;
-    alignment->checkGappySeq();
-    
-    cout << "\nStart placement core\n";
+	
+	if (params.pporigspr)
+	{		
+		tree->params = &params;
 
-    auto startTime = getCPUTime();
-    IQTree newTree;
-    char* file_name = params.mutation_tree_file;
-    bool is_rooted = false;
-    newTree.readTree(file_name, is_rooted);
+		bool is_rooted = params.is_rooted;
+		tree->readTree(params.mutation_tree_file, is_rooted);
+		configLeafNames(tree, tree->root, NULL);
+
+		tree->initializeAllPartialPars();
+		tree->clearAllPartialLH();
+		tree->curScore = tree->computeParsimony();
+
+
+		// print score of tree before running SPR
+		ofstream fout("score.txt");
+		fout << tree->curScore;
+		fout.close();
+
+		fout.open("tree.txt");
+		double start_time = getCPUTime();
+		fout << tree->ppRunOriginalSpr();
+		double end_time = getCPUTime();
+		cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+		fout.close();
+
+		delete tree->aln;
+		tree->aln = NULL;
+		delete tree;
+
+		return;
+	}
+
+	//	if(params.maximum_parsimony && (params.gbo_replicates || params.sankoff_cost_file)){
+	if (params.maximum_parsimony && (params.sort_alignment || params.sankoff_cost_file))
+	{
+		optimizeAlignment(tree, params); // Diep: this is to rearrange columns for better speed in REPS
+	}
+
+
+	string original_model = params.model_name;
+
+	vector<ModelInfo> model_info;
+	alignment->checkGappySeq();
+
+	cout << "\nStart placement core\n";
+
+	auto startTime = getCPUTime();
+	IQTree newTree;
+	char *file_name = params.mutation_tree_file;
+	bool is_rooted = false;
+	newTree.readTree(file_name, is_rooted);
 
 	newTree.add_row = true;
 
 	// Init new tree's alignment
-    newTree.setAlignment(tree->aln);
-    newTree.aln = new Alignment;
-    newTree.aln->copyAlignment(tree->aln);
-    newTree.aln->ungroupSitePattern();
-    newTree.aln->missingSamples = alignment->missingSamples;
-    newTree.aln->existingSamples = alignment->existingSamples;
-    newTree.aln->reference_nuc = alignment->reference_nuc;
+	newTree.setAlignment(tree->aln);
+	newTree.aln = new Alignment;
+	newTree.aln->copyAlignment(tree->aln);
+	newTree.aln->ungroupSitePattern();
+	newTree.aln->missingSamples = alignment->missingSamples;
+	newTree.aln->existingSamples = alignment->existingSamples;
+	newTree.aln->reference_nuc = alignment->reference_nuc;
 
 	// Init new tree's memory
 	newTree.save_branch_states_dad = new UINT[(newTree.aln->size() + 7) / 8 + 1];
-    newTree.save_branch_fitch_result = new UINT[newTree.aln->size() + 1];
+	newTree.save_branch_fitch_result = new UINT[newTree.aln->size() + 1];
 
-    cout << "Tree parsimony before add k rows: " << newTree.computeParsimony() << '\n';
-    vector<int> permCol = alignment->findPermCol();
-    vector<int> savePermCol = permCol;
-    vector<int> pos;
+	cout << "Tree parsimony before add k rows: " << newTree.computeParsimony() << '\n';
+	vector<int> permCol = alignment->findPermCol();
+	vector<int> savePermCol = permCol;
+	vector<int> pos;
 
-    if (alignment->existingSamples.size())
-    {
-        for (auto& m : permCol)
-            m = alignment->existingSamples[0][m].position;
-    }
-    else
-    {
-        for (auto& m : permCol) m++;
-    }
+	if (alignment->existingSamples.size())
+	{
+		for (auto &m : permCol)
+			m = alignment->existingSamples[0][m].position;
+	}
+	else
+	{
+		for (auto &m : permCol)
+			m++;
+	}
 
-    for (int i = 0; i < (int)permCol.size(); ++i)
-    {
-        while ((int)pos.size() <= permCol[i])
-            pos.push_back(0);
-        pos[permCol[i]] = i;
-    }
+	for (int i = 0; i < (int)permCol.size(); ++i)
+	{
+		while ((int)pos.size() <= permCol[i])
+			pos.push_back(0);
+		pos[permCol[i]] = i;
+	}
 
-    // for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
-    // {
-    //     for (auto m : alignment->missingSamples[i])
-    //     {
-    //         assert(newTree.aln->reference_nuc[m.position] > 0);
-    //     }
-    // }
-    // for (int i = 0; i < (int)alignment->existingSamples.size(); ++i)
-    // {
-    //     for (auto m : alignment->existingSamples[i])
-    //     {
-    //         assert(newTree.aln->reference_nuc[m.position] > 0);
-    //     }
-    // }
+	// for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
+	// {
+	//     for (auto m : alignment->missingSamples[i])
+	//     {
+	//         assert(newTree.aln->reference_nuc[m.position] > 0);
+	//     }
+	// }
+	// for (int i = 0; i < (int)alignment->existingSamples.size(); ++i)
+	// {
+	//     for (auto m : alignment->existingSamples[i])
+	//     {
+	//         assert(newTree.aln->reference_nuc[m.position] > 0);
+	//     }
+	// }
 
-    int sz = 0;
-    for (int m : permCol)
-        sz = max(sz, m);
-    newTree.cur_missing_sample_mutations.resize(sz + 1);
-    newTree.cur_ancestral_mutations.resize(sz + 1);
-    newTree.visited_missing_sample_mutations.resize(sz + 1);
-    newTree.visited_ancestral_mutations.resize(sz + 1);
+	int sz = 0;
+	for (int m : permCol)
+		sz = max(sz, m);
+	newTree.cur_missing_sample_mutations.resize(sz + 1);
+	newTree.cur_ancestral_mutations.resize(sz + 1);
+	newTree.visited_missing_sample_mutations.resize(sz + 1);
+	newTree.visited_ancestral_mutations.resize(sz + 1);
 
-    newTree.initMutation(permCol);
+	newTree.initMutation(permCol);
 
-    cout << "Tree parsimony after init mutations: " << newTree.computeParsimony() << " " << newTree.computeParsimonyScoreMutation() << '\n';
-    int num_sample = (int)alignment->missingSamples.size();
-    vector<MutationNode> missingSamples(num_sample);
-    for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
-    {
-        missingSamples[i].mutations = alignment->missingSamples[i];
-        // for (auto m : alignment->missingSamples[i])
-        // {
-        //     assert((m.ref_nuc & (m.ref_nuc - 1)) == 0);
-        // }
-        missingSamples[i].name = alignment->missingSamples[i][0].name;
-    }
+	cout << "Tree parsimony after init mutations: " << newTree.computeParsimony() << " " << newTree.computeParsimonyScoreMutation() << '\n';
+	int num_sample = (int)alignment->missingSamples.size();
+	vector<MutationNode> missingSamples(num_sample);
+	for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
+	{
+		missingSamples[i].mutations = alignment->missingSamples[i];
+		// for (auto m : alignment->missingSamples[i])
+		// {
+		//     assert((m.ref_nuc & (m.ref_nuc - 1)) == 0);
+		// }
+		missingSamples[i].name = alignment->missingSamples[i][0].name;
+	}
 
 	int numSample = min((int)missingSamples.size(), params.numAddRow);
-    for (int i = 0; i < numSample; ++i)
-    {
-        vector<pair<PhyloNode*, PhyloNeighbor*> > bfs = newTree.breadth_first_expansion();
-        size_t total_nodes = (int)bfs.size();
-        // Stores the excess mutations to place the sample at each
-        // node of the tree in DFS order. When placement is as a
-        // child, it only contains parsimony-increasing mutations in
-        // the sample. When placement is as a sibling, it contains
-        // parsimony-increasing mutations as well as the mutations
-        // on the placed node in common with the new sample. Note
-        // guaranteed to be corrrect only for optimal nodes since
-        // the mapper can terminate the search early for non-optimal
-        // nodes
-        std::vector<std::vector<Mutation>> node_excess_mutations(total_nodes);
-        // Stores the imputed mutations for ambiguous bases in the
-        // sampled in order to place the sample at each node of the
-        // tree in DFS order. Again, guaranteed to be corrrect only
-        // for pasrimony-optimal nodes
-        std::vector<std::vector<Mutation>> node_imputed_mutations(total_nodes);
+	for (int i = 0; i < numSample; ++i)
+	{
+		vector<pair<PhyloNode *, PhyloNeighbor *>> bfs = newTree.breadth_first_expansion();
+		size_t total_nodes = (int)bfs.size();
+		// Stores the excess mutations to place the sample at each
+		// node of the tree in DFS order. When placement is as a
+		// child, it only contains parsimony-increasing mutations in
+		// the sample. When placement is as a sibling, it contains
+		// parsimony-increasing mutations as well as the mutations
+		// on the placed node in common with the new sample. Note
+		// guaranteed to be corrrect only for optimal nodes since
+		// the mapper can terminate the search early for non-optimal
+		// nodes
+		std::vector<std::vector<Mutation>> node_excess_mutations(total_nodes);
+		// Stores the imputed mutations for ambiguous bases in the
+		// sampled in order to place the sample at each node of the
+		// tree in DFS order. Again, guaranteed to be corrrect only
+		// for pasrimony-optimal nodes
+		std::vector<std::vector<Mutation>> node_imputed_mutations(total_nodes);
 
-        bool best_node_has_unique = false;
+		bool best_node_has_unique = false;
 
-        std::vector<bool> node_has_unique(total_nodes, false);
-        size_t best_node_num_leaves = 0;
-        int best_set_difference = INF;
-        int set_difference = INF;
-        size_t best_j = 0;
-        size_t best_distance = (size_t)1e9 + 7;
+		std::vector<bool> node_has_unique(total_nodes, false);
+		size_t best_node_num_leaves = 0;
+		int best_set_difference = INF;
+		int set_difference = INF;
+		size_t best_j = 0;
+		size_t best_distance = (size_t)1e9 + 7;
 
-        for (int j = 0; j < (int)bfs.size(); ++j)
-        {
-            // cout << "here\n";
-            CandidateNode inp;
-            inp.node = bfs[j].first;
-            inp.node_branch = bfs[j].second;
-            inp.missing_sample_mutations = &missingSamples[i].mutations;
-            inp.excess_mutations = &node_excess_mutations[j];
-            inp.imputed_mutations = &node_imputed_mutations[j];
-            inp.best_node_num_leaves = &best_node_num_leaves;
-            inp.best_set_difference = &best_set_difference;
-            inp.set_difference = &set_difference;
-            inp.best_j = &best_j;
-            inp.best_distance = &best_distance;
-            inp.j = j;
-            inp.has_unique = &best_node_has_unique;
-            inp.node_has_unique = &(node_has_unique);
+		for (int j = 0; j < (int)bfs.size(); ++j)
+		{
+			// cout << "here\n";
+			CandidateNode inp;
+			inp.node = bfs[j].first;
+			inp.node_branch = bfs[j].second;
+			inp.missing_sample_mutations = &missingSamples[i].mutations;
+			inp.excess_mutations = &node_excess_mutations[j];
+			inp.imputed_mutations = &node_imputed_mutations[j];
+			inp.best_node_num_leaves = &best_node_num_leaves;
+			inp.best_set_difference = &best_set_difference;
+			inp.set_difference = &set_difference;
+			inp.best_j = &best_j;
+			inp.best_distance = &best_distance;
+			inp.j = j;
+			inp.has_unique = &best_node_has_unique;
+			inp.node_has_unique = &(node_has_unique);
 
-            newTree.calculatePlacementMutation(inp, false, true);
-        }
+			newTree.calculatePlacementMutation(inp, false, true);
+		}
 
-        newTree.addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
-        // newTree.aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
-        // newTree.checkMutation(pos);
-        // cout << newTree.computeParsimonyScoreMutation() << " " << newTree.computeParsimonyScore() << '\n';
-    }
-    delete newTree.aln;
-    newTree.aln = NULL;
-    cout << "New tree's parsimony score: " << newTree.computeParsimonyScoreMutation() << '\n';
-    cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
+		newTree.addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
+		// newTree.aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
+		// newTree.checkMutation(pos);
+		// cout << newTree.computeParsimonyScoreMutation() << " " << newTree.computeParsimonyScore() << '\n';
+	}
+	delete newTree.aln;
+	newTree.aln = NULL;
+	cout << "New tree's parsimony score: " << newTree.computeParsimonyScoreMutation() << '\n';
+	cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
 }

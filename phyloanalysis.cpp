@@ -483,8 +483,7 @@ extern StringIntMap pllTreeCounter;
 void reportPhyloAnalysis(Params& params, string& original_model,
 	Alignment& alignment, IQTree& tree, vector<ModelInfo>& model_info,
 	StrVector& removed_seqs, StrVector& twin_seqs)
-{
-	if (params.count_trees)
+{	if (params.count_trees)
 	{
 		// addon: print #distinct trees
 		cout << endl

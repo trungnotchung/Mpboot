@@ -2923,7 +2923,7 @@ static void stepwiseAddition(pllInstance *tr, partitionList *pr, nodeptr p, node
 
 void _updateInternalPllOnRatchet(pllInstance *tr, partitionList *pr)
 {
-  //	cout << "lower = " << pr->partitionData[0]->lower << ", upper = " << pr->partitionData[0]->upper << ", aln->size() = " << iqtree->aln->size() << endl;
+  	// cout << "lower = " << pr->partitionData[0]->lower << ", upper = " << pr->partitionData[0]->upper << ", aln->size() = " << iqtree->aln->size() << endl;
   for (int i = 0; i < pr->numberOfPartitions; i++)
   {
     for (int ptn = pr->partitionData[i]->lower; ptn < pr->partitionData[i]->upper; ptn++)
@@ -3168,10 +3168,11 @@ int pllOptimizeSprParsimony(pllInstance *tr, partitionList *pr, int mintrav, int
     // oct 23: in non-ratchet iteration, allocate is not triggered
     _updateInternalPllOnRatchet(tr, pr);
     _allocateParsimonyDataStructures(tr, pr, perSiteScores); // called once if not running ratchet
-  }
-  else if (first_call || (iqtree && iqtree->on_opt_btree))
-    _allocateParsimonyDataStructures(tr, pr, perSiteScores); // called once if not running ratchet
 
+  }
+  else if (first_call || (iqtree && iqtree->on_opt_btree)) {
+    _allocateParsimonyDataStructures(tr, pr, perSiteScores); // called once if not running ratchet
+  }
   if (first_call)
   {
     first_call = false;
@@ -3192,13 +3193,18 @@ int pllOptimizeSprParsimony(pllInstance *tr, partitionList *pr, int mintrav, int
 
   assert(!tr->constrained);
 
+
   nodeRectifierPars(tr);
+
   tr->bestParsimony = UINT_MAX;
   tr->bestParsimony = evaluateParsimony(tr, pr, tr->start, PLL_TRUE, perSiteScores);
 
-  assert(-iqtree->curScore == tr->bestParsimony);
+  cout << "\ttr->bestParsimony (initial tree) = " << tr->bestParsimony << endl;
+  cout << "\tiqtree->curScore = " << iqtree->curScore << endl;
 
-  //	cout << "\ttr->bestParsimony (initial tree) = " << tr->bestParsimony << endl;
+  assert(iqtree->curScore == tr->bestParsimony);
+
+  	// cout << "\ttr->bestParsimony (initial tree) = " << tr->bestParsimony << endl;
   /*
   // Diep: to be investigated
   tr->bestParsimony = -iqtree->logl_cutoff;
@@ -3225,6 +3231,7 @@ int pllOptimizeSprParsimony(pllInstance *tr, partitionList *pr, int mintrav, int
       bestTreeScoreHits = 1;
 
       rearrangeParsimony(tr, pr, tr->nodep[i], mintrav, maxtrav, PLL_FALSE, perSiteScores);
+
       if (tr->bestParsimony == randomMP)
         bestIterationScoreHits++;
       if (tr->bestParsimony < randomMP)

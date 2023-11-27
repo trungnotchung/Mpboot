@@ -1448,6 +1448,7 @@ int Alignment::buildPattern(StrVector& sequences, char* sequence_type, int nseq,
                 err_str << " at site " << site + 1 << endl;
             }
             pat[seq] = state;
+            // cout << (int)state << endl;
         }
         num_gaps_only += addPattern(pat, site / step);
     }

@@ -36,43 +36,47 @@
 
 #define BOOT_VAL_FLOAT
 #define BootValType float
-//#define BootValType double
+// #define BootValType double
 
-
-typedef std::map< string, double > mapString2Double;
-typedef std::multiset< double, std::less< double > > multiSetDB;
-typedef std::multiset< int, std::less< int > > MultiSetInt;
+typedef std::map<string, double> mapString2Double;
+typedef std::multiset<double, std::less<double>> multiSetDB;
+typedef std::multiset<int, std::less<int>> MultiSetInt;
 
 /**
         nodeheightcmp, for building k-representative leaf set
  */
 
-
-class RepLeaf {
+class RepLeaf
+{
 public:
     Node *leaf;
     int height;
 
-    RepLeaf(Node *aleaf, int aheight = 0) {
+    RepLeaf(Node *aleaf, int aheight = 0)
+    {
         leaf = aleaf;
         height = aheight;
     }
 };
 
-struct nodeheightcmp {
+struct nodeheightcmp
+{
 
-    bool operator()(const RepLeaf* s1, const RepLeaf * s2) const {
+    bool operator()(const RepLeaf *s1, const RepLeaf *s2) const
+    {
         return (s1->height) < (s2->height);
     }
 };
 
-struct IntBranchInfo {
+struct IntBranchInfo
+{
     PhyloNode *node1;
     PhyloNode *node2;
     double lh_contribution; // log-likelihood contribution of this branch: L(T)-L(T|e=0)
 };
 
-inline int int_branch_cmp(const IntBranchInfo a, const IntBranchInfo b) {
+inline int int_branch_cmp(const IntBranchInfo a, const IntBranchInfo b)
+{
     return (a.lh_contribution < b.lh_contribution);
 }
 
@@ -80,14 +84,15 @@ inline int int_branch_cmp(const IntBranchInfo a, const IntBranchInfo b) {
         Representative Leaf Set, stored as a multiset template of STL,
         sorted in ascending order of leaf's height
  */
-typedef multiset<RepLeaf*, nodeheightcmp> RepresentLeafSet;
+typedef multiset<RepLeaf *, nodeheightcmp> RepresentLeafSet;
 
 /**
 Important Quartet Puzzling
 
         @author BUI Quang Minh <minh.bui@univie.ac.at>
  */
-class IQTree : public PhyloTree {
+class IQTree : public PhyloTree
+{
 public:
     /**
             default constructor
@@ -108,11 +113,11 @@ public:
     /**
      * setup all necessary parameters  (declared as virtual needed for phylosupertree)
      */
-    virtual void setParams(Params& params);
+    virtual void setParams(Params &params);
 
-    void addRemainRow(const vector<string>& remainRowName, const vector<string>& remainRow, const vector<int>& perm, const vector<int>&permCol);
+    void addRemainRow(const vector<string> &remainRowName, const vector<string> &remainRow, const vector<int> &perm, const vector<int> &permCol);
 
-    int addRemainRowSPR(const vector<string>& remainRowName, const vector<string>& remainRow, const vector<int>& perm, const vector<int>&permCol, Params &params);
+    int addRemainRowSPR(const vector<string> &remainRowName, const vector<string> &remainRow, const vector<int> &perm, const vector<int> &permCol, Params &params);
 
     // void readTreeFromFile(string s);
 
@@ -142,14 +147,13 @@ public:
      * print phylolib tree to a file.
      * @param suffix suffix string for the tree file
      */
-    void printPhylolibTree(const char* suffix);
-
+    void printPhylolibTree(const char *suffix);
 
     /**
      *  print model parameters of Phylolib(rates, base frequencies, alpha) to stdout and
      *  to file
      */
-    //void printPhylolibModelParams(const char* suffix);
+    // void printPhylolibModelParams(const char* suffix);
 
     /**
         print intermediate tree
@@ -166,7 +170,7 @@ public:
             set the probability of deleteing sequences for IQP algorithm
             @param p_del probability of deleting sequences
      */
-    //void setProbDelete(double p_del);
+    // void setProbDelete(double p_del);
 
     double getProbDelete();
 
@@ -179,12 +183,12 @@ public:
             @param min_iterations the min number of iterations
             @param max_iterations the maximum number of iterations
      */
-//    void setIQPIterations(STOP_CONDITION stop_condition, double stop_confidence, int min_iterations, int max_iterations);
+    //    void setIQPIterations(STOP_CONDITION stop_condition, double stop_confidence, int min_iterations, int max_iterations);
 
     /**
             @param assess_quartet the quartet assessment, either IQP_DISTANCE or IQP_PARSIMONY
      */
-    //void setIQPAssessQuartet(IQP_ASSESS_QUARTET assess_quartet);
+    // void setIQPAssessQuartet(IQP_ASSESS_QUARTET assess_quartet);
 
     /**
             find the k-representative leaves under the node
@@ -192,8 +196,8 @@ public:
             @param dad the dad node of the considered subtree, to direct the search
             @param leaves (OUT) the k-representative leaf set
      */
-    RepresentLeafSet* findRepresentLeaves(vector<RepresentLeafSet*> &leaves, int nei_id,
-            PhyloNode *dad);
+    RepresentLeafSet *findRepresentLeaves(vector<RepresentLeafSet *> &leaves, int nei_id,
+                                          PhyloNode *dad);
 
     /**
             clear representative leave sets iteratively, called once a leaf is re-inserted into the tree
@@ -201,7 +205,7 @@ public:
             @param dad the dad node of the considered subtree, to direct the search
             @param leaves (OUT) the k-representative leaf set
      */
-    void clearRepresentLeaves(vector<RepresentLeafSet*> &leaves_vec, Node *node, Node *dad);
+    void clearRepresentLeaves(vector<RepresentLeafSet *> &leaves_vec, Node *node, Node *dad);
 
     /**
             remove a portion of leaves and reinsert them using the IQP algorithm
@@ -228,7 +232,7 @@ public:
      *  get the rate parameters from PLL
      *  @return double array containing the 6 rates
      */
-    double* getModelRatesFromPLL();
+    double *getModelRatesFromPLL();
 
     /**
      *  get the alpha parameter from PLL for the GAMMA distribution of rate heterogenity
@@ -247,7 +251,7 @@ public:
      */
     double inputTree2PLL(string treestring, bool computeLH = true);
 
-    //bool containPosNNI(vector<NNIMove> posNNIs);
+    // bool containPosNNI(vector<NNIMove> posNNIs);
 
     /**
      * Perturb the tree for the next round of local search by swaping position of 2 random leaves
@@ -293,7 +297,6 @@ public:
     /****************************************************************************
             Fast Nearest Neighbor Interchange by maximum likelihood
      ****************************************************************************/
-
 
     /**
             This implement the fastNNI algorithm proposed in PHYML paper
@@ -355,7 +358,7 @@ public:
      *  This is called after an NNI is reverted.
      *  @param nnimove the NNI move currently in consideration
      */
-    //void restoreNNIBranches(NNIMove nnimove);
+    // void restoreNNIBranches(NNIMove nnimove);
 
     /**
             generate non conflicting NNI moves.
@@ -385,7 +388,6 @@ public:
      * @return the branch length
      */
     double getBranLen(PhyloNode *node1, PhyloNode *node2);
-
 
     /**
             Described in PhyML paper: apply change to branch that does not
@@ -433,14 +435,16 @@ public:
      *
      * @return
      */
-    double getBestScore(void) {
+    double getBestScore(void)
+    {
         return bestScore;
     }
 
     /**
      *
      */
-    void setBestScore(double score) {
+    void setBestScore(double score)
+    {
         bestScore = score;
     }
 
@@ -454,7 +458,7 @@ public:
      */
     int cur_pars_score;
 
-//    bool enable_parsimony;
+    //    bool enable_parsimony;
     /**
             stopping rule
      */
@@ -463,7 +467,7 @@ public:
     /**
      *      Parsimony scores, used for linear regression
      */
-    double* pars_scores;
+    double *pars_scores;
 
     /**
         Log-likelihood variastring IQPTree::bran2string(PhyloNode* node1, PhyloNode* node2)nce
@@ -474,12 +478,12 @@ public:
      *      The coressponding log-likelihood score from computed indendently from the parsimony
      *      scores
      */
-    double* lh_scores;
+    double *lh_scores;
 
-    Linear* linRegModel;
+    Linear *linRegModel;
 
-
-    inline double getNNICutoff() {
+    inline double getNNICutoff()
+    {
         return nni_cutoff;
     }
 
@@ -488,7 +492,6 @@ public:
      *  The last element (nni_for_pertub.end()) is the best NNI
      */
     vector<pllNNIMove> nniListOfBestTree;
-
 
     /**
      *  Instance of the phylogenetic likelihood library. This is basically the tree data strucutre in RAxML
@@ -508,7 +511,7 @@ public:
     /**
      *  PLL partition list
      */
-    partitionList * pllPartitions;
+    partitionList *pllPartitions;
 
     /**
      *  information and parameters for the tree search procedure
@@ -542,57 +545,58 @@ public:
      * @param seq: data of some sequence to be substituted
      * @param dataType: PLL_DNA_DATA or PLL_AA_DATA
      */
-   void pllBaseSubstitute (char *str, int dataType);
+    void pllBaseSubstitute(char *str, int dataType);
 
-   /*
-    * An array to map site index in pllAlignment into IQTree pattern index
-    * Born due to the order difference of these two
-    * Will be deallocated in pllDestroyUFBootData()
-    */
-   int * pll2iqtree_pattern_index;
+    /*
+     * An array to map site index in pllAlignment into IQTree pattern index
+     * Born due to the order difference of these two
+     * Will be deallocated in pllDestroyUFBootData()
+     */
+    int *pll2iqtree_pattern_index;
 
-   /*
-    * Build pll2iqtree_pattern_index
-    * Must be called AFTER initializing PLL model
-    */
-   void pllBuildIQTreePatternIndex();
+    /*
+     * Build pll2iqtree_pattern_index
+     * Must be called AFTER initializing PLL model
+     */
+    void pllBuildIQTreePatternIndex();
 
-   /**
-    * FOR TESTING:
-    * Write to log file the freq of pllAlignment sites, and
-    * freq of bootstrap site stored in pllUFBootDataPtr->boot_samples
-    */
-   void pllLogBootSamples(int** pll_boot_samples, int nsamples, int npatterns);
+    /**
+     * FOR TESTING:
+     * Write to log file the freq of pllAlignment sites, and
+     * freq of bootstrap site stored in pllUFBootDataPtr->boot_samples
+     */
+    void pllLogBootSamples(int **pll_boot_samples, int nsamples, int npatterns);
 
-   /**
-    * Convert certain arrays in pllUFBootDataPtr
-    * into IQTree data structures
-    * to be usable in IQTree::summarizeBootstrap()
-    */
-   void pllConvertUFBootData2IQTree();
+    /**
+     * Convert certain arrays in pllUFBootDataPtr
+     * into IQTree data structures
+     * to be usable in IQTree::summarizeBootstrap()
+     */
+    void pllConvertUFBootData2IQTree();
 
-   /**
-    * Diep: to optimize bootstrap trees at the end of doTreeSearch()
-    * if -opt_btree is ON along with -bb -mpars
-    */
-   void optimizeBootTrees();
+    /**
+     * Diep: to optimize bootstrap trees at the end of doTreeSearch()
+     * if -opt_btree is ON along with -bb -mpars
+     */
+    void optimizeBootTrees();
 
-   /**
-    * Diep: to generate the bootstrap tree set
-    * by hill-climbing on corresponding bootstrap aln starting from a random tree in candidate set
-    * Used in case -opt_btree -save_trees_off is specfied
-    */
-   void optimizeBootTreesPure();
+    /**
+     * Diep: to generate the bootstrap tree set
+     * by hill-climbing on corresponding bootstrap aln starting from a random tree in candidate set
+     * Used in case -opt_btree -save_trees_off is specfied
+     */
+    void optimizeBootTreesPure();
 
-   /**
-    * Diep:
-    * Sankoff cost matrix, to be inherited and used in ParsTree
-    */
-    unsigned int * cost_matrix; // Sep 2016: store cost matrix in 1D array
-    int cost_nstates; // Sep 2016: # of states provided by cost matrix
+    /**
+     * Diep:
+     * Sankoff cost matrix, to be inherited and used in ParsTree
+     */
+    unsigned int *cost_matrix; // Sep 2016: store cost matrix in 1D array
+    int cost_nstates;          // Sep 2016: # of states provided by cost matrix
+
+    string ppRunOriginalSpr();
 
 protected:
-
     /**
      *  Current IQPNNI iteration number
      */
@@ -601,7 +605,6 @@ protected:
             criterion to assess important quartet
      */
     IQP_ASSESS_QUARTET iqp_assess_quartet;
-
 
     /**
      * Taxa set
@@ -617,7 +620,6 @@ protected:
      * confidence value for likelihood improvement made by one NNI
      */
     double nni_delta_est;
-
 
     /**
      *  Vector contains approximated improvement pro NNI at each iterations
@@ -673,20 +675,18 @@ protected:
     int k_represent;
 
 public:
-
     /**
      *  @brief: optimize model parameters on the current tree
      *  either IQ-TREE or PLL
      *  @param imd_tree the input tree or NULL
      *  @param printInfo to print model parameters to the screen or not
      */
-    string optimizeModelParameters(bool printInfo=false);
+    string optimizeModelParameters(bool printInfo = false);
 
     /**
      *  variable storing the current best tree topology
      */
-    topol* pllBestTree;
-
+    topol *pllBestTree;
 
     /**
      * The current best score found
@@ -700,7 +700,6 @@ public:
 
     CandidateSet candidateTrees;
 
-
     /****** following variables are for ultra-fast bootstrap *******/
 
     /** TRUE to save also branch lengths into treels_newick */
@@ -713,7 +712,7 @@ public:
     StringIntMap treels;
 
     /** pattern log-likelihood vector for each treels */
-    vector<double* > treels_ptnlh;
+    vector<double *> treels_ptnlh;
 
     /** tree log-likelihood for each treels */
     DoubleVector treels_logl;
@@ -728,9 +727,9 @@ public:
     double logl_cutoff;
 
     /** vector of bootstrap alignments generated */
-    vector<BootValType* > boot_samples;
-    vector<BootValTypePars*> boot_samples_pars; // Diep added
-    vector<int*> boot_samples_pars_remain_bounds; // Diep: minimal score for the remain of boot aln from segment_upper[i]
+    vector<BootValType *> boot_samples;
+    vector<BootValTypePars *> boot_samples_pars;   // Diep added
+    vector<int *> boot_samples_pars_remain_bounds; // Diep: minimal score for the remain of boot aln from segment_upper[i]
 
     int reps_segments; // Diep added: (if needed) split the parsimony vector into several segments to avoid overflow when calc rell based on vec8us
 
@@ -738,60 +737,59 @@ public:
     // segment0: 0.................... segment_upper[0] - 1
     // segment1: segment_upper[0] .... segment_upper[1] - 1
     // segment2: segment_upper[1] .... segment_upper[2] - 1
-    int * segment_upper;
+    int *segment_upper;
     void doSegmenting(); // Diep: calculate segments (reps_segments, segment_upper)
-
 
     void pllComputeRellRemainBound(int nunit);
 
     void initTopologyByPLLRandomAdition(Params &params); // Diep: this is for reorder columns in aln (UFBoot-MP)
-    BootValTypePars * getPatternPars();
+    BootValTypePars *getPatternPars();
 
     /** newick string of corresponding bootstrap trees */
     IntVector boot_trees;
 
-	/** number of multiple optimal trees per replicate */
-	IntVector boot_counts;
+    /** number of multiple optimal trees per replicate */
+    IntVector boot_counts;
 
-	IntVector boot_best_hits; // Diep: added to count # best trees on each boot aln
-	vector<IntegerSet> boot_trees_parsimony;
-//	vector<IntVector> boot_trees_parsimony_score;
-	vector<StringIntMap> boot_trees_ls_parsimony;
+    IntVector boot_best_hits; // Diep: added to count # best trees on each boot aln
+    vector<IntegerSet> boot_trees_parsimony;
+    //	vector<IntVector> boot_trees_parsimony_score;
+    vector<StringIntMap> boot_trees_ls_parsimony;
 
-	typedef pair<int,int> IntPair;
-	typedef vector<IntPair> IntPairVector;
-	vector<IntPairVector> boot_trees_parsimony_top; // 1000 vectors of int pair (tree index, tree logl)
-	vector<int> boot_threshold;
+    typedef pair<int, int> IntPair;
+    typedef vector<IntPair> IntPairVector;
+    vector<IntPairVector> boot_trees_parsimony_top; // 1000 vectors of int pair (tree index, tree logl)
+    vector<int> boot_threshold;
 
-	vector<IntVector> boot_trees_parsimony_top_iter; // 1000 vectors of int (iter)
-									// each iter here corresponding to one int pair in boot_trees_parsimony_top
+    vector<IntVector> boot_trees_parsimony_top_iter; // 1000 vectors of int (iter)
+                                                     // each iter here corresponding to one int pair in boot_trees_parsimony_top
 
-	bool on_ratchet_hclimb1; // is on the 1st hill-climbing in a ratchet iteration (i.e. on perturbed aln)
-	bool on_ratchet_hclimb2; // is on the 2nd hill-climbing in a ratchet iteration (i.e. on original aln)
-	Alignment * saved_aln_on_ratchet_iter;
-	Alignment * saved_aln_on_opt_btree;
-	BootValTypePars * original_sample;
-	bool on_opt_btree;
-	vector<int> boot_tree_orig_logl;
+    bool on_ratchet_hclimb1; // is on the 1st hill-climbing in a ratchet iteration (i.e. on perturbed aln)
+    bool on_ratchet_hclimb2; // is on the 2nd hill-climbing in a ratchet iteration (i.e. on original aln)
+    Alignment *saved_aln_on_ratchet_iter;
+    Alignment *saved_aln_on_opt_btree;
+    BootValTypePars *original_sample;
+    bool on_opt_btree;
+    vector<int> boot_tree_orig_logl;
 
-	bool iter_best;
+    bool iter_best;
 
     /** corresponding RELL log-likelihood */
     DoubleVector boot_logl;
 
     /** Set of splits occuring in bootstrap trees */
-    vector<SplitGraph*> boot_splits;
+    vector<SplitGraph *> boot_splits;
 
     /** Corresponding map for set of splits occuring in bootstrap trees */
-    //SplitIntMap boot_splits_map;
+    // SplitIntMap boot_splits_map;
 
     /** summarize all bootstrap trees */
     void summarizeBootstrap(Params &params, MTreeSet &trees);
 
     void summarizeBootstrap(Params &params);
-	void summarizeBootstrapParsimony(Params &params);
-	void summarizeBootstrapParsimonyWeight(Params &params);
-	void summarizeBootstrapParsimonyTop(Params &params);
+    void summarizeBootstrapParsimony(Params &params);
+    void summarizeBootstrapParsimonyWeight(Params &params);
+    void summarizeBootstrapParsimonyTop(Params &params);
 
     /** summarize bootstrap trees into split set */
     void summarizeBootstrap(SplitGraph &sg);
@@ -804,29 +802,30 @@ public:
     /** @return bootstrap correlation coefficient for assessing convergence */
     double computeBootstrapCorrelation();
 
-	int getDelete() const;
-	void setDelete(int _delete);
+    int getDelete() const;
+    void setDelete(int _delete);
 
-	/** remove identical sequences from the tree */
+    /** remove identical sequences from the tree */
     virtual void removeIdenticalSeqs(Params &params, StrVector &removed_seqs, StrVector &twin_seqs);
 
     /** reinsert identical sequences into the tree and reset original alignment */
     virtual void reinsertIdenticalSeqs(Alignment *orig_aln, StrVector &removed_seqs, StrVector &twin_seqs);
 
-	int getCurIt() const {
-		return curIt;
-	}
+    int getCurIt() const
+    {
+        return curIt;
+    }
 
-	void setCurIt(int curIt) {
-		this->curIt = curIt;
-	}
+    void setCurIt(int curIt)
+    {
+        this->curIt = curIt;
+    }
 
 protected:
     /**** NNI cutoff heuristic *****/
     /**
      */
     vector<NNIInfo> nni_info;
-
 
     bool estimate_nni_cutoff;
 
@@ -837,15 +836,15 @@ protected:
     bool testNNI;
 
     ofstream outNNI;
-protected:
 
+protected:
     bool print_tree_lh;
 
     int write_intermediate_trees;
 
     ofstream out_treels, out_treelh, out_sitelh, out_treebetter;
 
-    void estimateNNICutoff(Params* params);
+    void estimateNNICutoff(Params *params);
 
     void saveNNITrees(PhyloNode *node = NULL, PhyloNode *dad = NULL);
 
@@ -854,12 +853,12 @@ protected:
     /**
             number of IQPNNI iterations
      */
-    //int iqpnni_iterations;
+    // int iqpnni_iterations;
 
     /**
             bonus values of all branches, used for IQP algorithm
      */
-    //double *bonus_values;
+    // double *bonus_values;
 
     /**
             delete a set of leaves from tree (with the probability p_delete), assume tree is birfucating
@@ -884,9 +883,7 @@ protected:
 
     void reinsertLeavesByParsimony(PhyloNodeVector &del_leaves);
 
-
     void doParsimonyReinsertion();
-
 
     /**
             assess a quartet with four taxa. Current implementation uses the four-point condition
@@ -908,7 +905,7 @@ protected:
             @return 0, 1, or 2 depending on del_leaf should be in subtree containing leaf0, leaf1, or leaf2, respectively
      */
     int assessQuartetParsimony(Node *leaf0, Node *leaf1, Node *leaf2,
-            Node *del_leaf);
+                               Node *del_leaf);
 
     /**
             assess the important quartets around a virtual root of the tree.
@@ -916,7 +913,7 @@ protected:
             @param cur_root the current virtual root
             @param del_leaf a leaf that was deleted (not in the existing sub-tree)
      */
-    void assessQuartets(vector<RepresentLeafSet*> &leaves_vec, PhyloNode *cur_root, PhyloNode *del_leaf);
+    void assessQuartets(vector<RepresentLeafSet *> &leaves_vec, PhyloNode *cur_root, PhyloNode *del_leaf);
 
     /**
             initialize the bonus points to ZERO
@@ -939,7 +936,7 @@ protected:
             @param dad dad of 'node', used to direct the recursion
             @return the partial bonus of the branch (node -> dad)
      */
-    double computePartialBonus(Node *node, Node* dad);
+    double computePartialBonus(Node *node, Node *dad);
 
     /**
             determine the list of branches with the same best bonus point
@@ -952,10 +949,8 @@ protected:
     void findBestBonus(double &best_score, NodeVector &best_nodes, NodeVector &best_dads, Node *node = NULL, Node *dad = NULL);
 
     void estDeltaMin();
-
 };
 
 void estimateNNICutoff(Params &params);
-
 
 #endif

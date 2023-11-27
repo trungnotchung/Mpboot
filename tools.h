@@ -493,7 +493,14 @@ extern int NNI_MAX_NR_STEP;
  */
 struct Params
 {
+        /**
+         * doing spr in tree 
+        */
+        bool pporigspr;
 
+        /**
+         * use if you want analyze alignment
+        */
         bool analyze_alignment;
 
         /**
