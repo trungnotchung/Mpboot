@@ -6,6 +6,7 @@
 #include "phylotesting.h"
 #include "nnisearch.h"
 #include "mutation.h"
+#include "matoptimize.h"
 
 const int INF = (int)1e9 + 7;
 

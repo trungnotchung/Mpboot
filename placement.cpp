@@ -401,7 +401,7 @@ void addMoreRowMutation(Params &params)
 	bool is_rooted = false;
 	newTree.readTree(file_name, is_rooted);
 
-	newTree.add_row = true;
+	tree.add_row = true;
 
 	// Init new tree's alignment
 	newTree.setAlignment(tree->aln);

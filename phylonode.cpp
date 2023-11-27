@@ -24,6 +24,43 @@ void PhyloNeighbor::clear_mutations()
 	mutations.clear();
 }
 
+void PhyloNeighbor::mark_can_move() {
+    canMove = 1;
+}
+
+void PhyloNeighbor::unmark_can_move() {
+    canMove = 0;
+}
+
+bool PhyloNeighbor::check_can_move() {
+    return canMove > 0;
+}
+
+void PhyloNeighbor::mark_can_do_spr() {
+    if(canMove == 1) {
+        canMove = 2;
+    }
+}
+
+void PhyloNeighbor::unmark_can_do_spr() {
+    if(canMove == 2) {
+        canMove = 1;
+    }
+}
+
+bool PhyloNeighbor::check_can_do_spr() {
+    return (canMove == 2);
+}
+
+void PhyloNeighbor::save_mutations() {
+    saved_mutations = mutations;
+}
+
+void PhyloNeighbor::restore_mutation() {
+    mutations = saved_mutations;
+
+}
+
 void PhyloNeighbor::add_mutation(Mutation mut)
 {
     auto iter = std::lower_bound(mutations.begin(), mutations.end(), mut);
@@ -108,10 +145,22 @@ PhyloNode::PhyloNode(int aid, const char *aname) : Node(aid, aname) {
 }
 
 void PhyloNode::init() {
-	//partial_lh = NULL;
+	missingIndex = -1;
 }
 
 
 void PhyloNode::addNeighbor(Node *node, double length, int id) {
 	neighbors.push_back(new PhyloNeighbor(node, length, id));
+}
+
+void PhyloNode::setMissingNode(int index) {
+    missingIndex = index;
+}
+
+bool PhyloNode::checkMissingNode() {
+    return missingIndex != -1;
+}
+
+int PhyloNode::getMissingIndex() {
+    return missingIndex;
 }
