@@ -299,7 +299,7 @@ public:
          */
 
         bool add_row;
-        UINT *save_branch_states_dad, *save_branch_fitch_result;
+        UINT *save_branch_states_dad;
         vector<Mutation> root_mutations;
         // init mutation for calculate
         void initMutation(vector<int> &permCol);

@@ -328,7 +328,6 @@ void addMoreRowMutation(Params& params)
 
 	// Init new tree's memory
 	tree.save_branch_states_dad = new UINT[(tree.aln->size() + 7) / 8 + 1];
-    tree.save_branch_fitch_result = new UINT[tree.aln->size() + 1];
 
     cout << "Tree parsimony before add k rows: " << tree.computeParsimony() << '\n';
     vector<int> permCol = alignment->findPermCol();
@@ -352,21 +351,6 @@ void addMoreRowMutation(Params& params)
         pos[permCol[i]] = i;
     }
 
-    // for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
-    // {
-    //     for (auto m : alignment->missingSamples[i])
-    //     {
-    //         assert(newTree.aln->reference_nuc[m.position] > 0);
-    //     }
-    // }
-    // for (int i = 0; i < (int)alignment->existingSamples.size(); ++i)
-    // {
-    //     for (auto m : alignment->existingSamples[i])
-    //     {
-    //         assert(newTree.aln->reference_nuc[m.position] > 0);
-    //     }
-    // }
-
     int sz = 0;
     for (int m : permCol)
         sz = max(sz, m);
@@ -378,7 +362,8 @@ void addMoreRowMutation(Params& params)
     tree.initMutation(permCol);
 
     cout << "Tree parsimony after init mutations: " << tree.computeParsimony() << " " << tree.computeParsimonyScoreMutation() << '\n';
-    int num_sample = (int)alignment->missingSamples.size();
+    // tree.checkMutation(pos);
+	int num_sample = (int)alignment->missingSamples.size();
     vector<MutationNode> missingSamples(num_sample);
     for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
     {
@@ -440,10 +425,9 @@ void addMoreRowMutation(Params& params)
 
             tree.calculatePlacementMutation(inp, false, true);
         }
-
         tree.addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
-        // newTree.aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
-        // newTree.checkMutation(pos);
+        // tree.aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
+        // tree.checkMutation(pos);
         // cout << newTree.computeParsimonyScoreMutation() << " " << newTree.computeParsimonyScore() << '\n';
     }
     cout << "New tree's parsimony score: " << tree.computeParsimonyScoreMutation() << '\n';
