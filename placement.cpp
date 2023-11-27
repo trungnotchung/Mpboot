@@ -345,14 +345,13 @@ void addMoreRowMutation(Params &params)
 		{
 			alignment->analyzeAlignment();
 		}
-		tree = new IQTree(alignment);
 	}
 
+	alignment->checkGappySeq();
 	
 	if (params.pporigspr)
 	{		
 		tree->params = &params;
-
 		bool is_rooted = params.is_rooted;
 		tree->readTree(params.mutation_tree_file, is_rooted);
 		configLeafNames(tree, tree->root, NULL);
@@ -380,25 +379,15 @@ void addMoreRowMutation(Params &params)
 
 		return;
 	}
-
-	//	if(params.maximum_parsimony && (params.gbo_replicates || params.sankoff_cost_file)){
-	if (params.maximum_parsimony && (params.sort_alignment || params.sankoff_cost_file))
-	{
-		optimizeAlignment(tree, params); // Diep: this is to rearrange columns for better speed in REPS
-	}
-
-
-    alignment->checkGappySeq();
-    
+	
     cout << "\n========== Start placement core ==========\n";
-
+	tree = new IQTree;
     auto startTime = getCPUTime();
     char* file_name = params.mutation_tree_file;
     bool is_rooted = false;
     tree->readTree(file_name, is_rooted);
-
 	tree->add_row = true;
-
+	
 	// Init new tree's alignment
     tree->setAlignment(alignment);
     tree->aln = new Alignment;
@@ -450,10 +439,6 @@ void addMoreRowMutation(Params &params)
     for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
     {
         missingSamples[i].mutations = alignment->missingSamples[i];
-        // for (auto m : alignment->missingSamples[i])
-        // {
-        //     assert((m.ref_nuc & (m.ref_nuc - 1)) == 0);
-        // }
         missingSamples[i].name = alignment->missingSamples[i][0].name;
     }
 

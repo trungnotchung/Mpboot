@@ -1,1 +1,1 @@
-addNewSample
+computeParsimony
