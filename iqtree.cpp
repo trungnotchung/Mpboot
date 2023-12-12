@@ -638,6 +638,7 @@ void IQTree::initializePLL(Params &params)
     pllAttr.saveMemory = PLL_FALSE;
     pllAttr.useRecom = PLL_FALSE;
     pllAttr.randomNumberSeed = params.ran_seed;
+    pllAttr.numAddRows = params.numAddRow;
 #ifdef _OPENMP
     pllAttr.numberOfThreads = params.num_threads; /* This only affects the pthreads version */
 #else
@@ -2516,7 +2517,6 @@ string IQTree::ppRunOriginalSpr()
         pllAlignmentDataDestroy(pllAlignment);
         pllAlignment = NULL;
     }
-    cout << "ppRunOriginalSpr" << endl;
     PatternComp pcomp;
     sort(aln->begin(), aln->end(), pcomp);
     aln->updateSitePatternAfterOptimized();
@@ -2529,15 +2529,19 @@ string IQTree::ppRunOriginalSpr()
     pllTreeInitTopologyNewick(pllInst, btree, PLL_FALSE);
     pllNewickParseDestroy(&btree);
 
+    printf("parsimony score in pll: %d\n", pllInst->bestParsimony);
+
     assert(pllInst != NULL && pllPartitions != NULL);
     printf("spr start\n");
     printf("spr radius: %d %d\n", params->spr_mintrav, params->spr_maxtrav);
-    const int scoreAfterRunSpr = pllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    const int scoreAfterRunSpr = myPllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
     printf("score after running spr: %d\n", scoreAfterRunSpr);
 
-    pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_TRUE,
-                    0, 0, 0, 0, PLL_SUMMARIZE_LH, 0, 0);
-    return pllInst->tree_string;
+    pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_FALSE,
+                    PLL_TRUE, 0, 0, 0, PLL_SUMMARIZE_LH, 0, 0);
+    string treeString = string(pllInst->tree_string);
+    readTreeString(treeString);
+    return treeString;
 }
 
 double IQTree::optimizeNNI(int &nni_count, int &nni_steps)

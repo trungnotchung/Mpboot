@@ -1920,6 +1920,8 @@ pllInstance * pllCreateInstance (pllInstanceAttr * attr)
   tr->numberOfThreads   = attr->numberOfThreads;
   tr->rearrangeHistory  = NULL;
 
+  tr->numAddRows        = attr->numAddRows;
+
   /* Lock the slave processors at this point */
 #ifdef _FINE_GRAIN_MPI
   pllLockMPI (tr);
@@ -2275,9 +2277,17 @@ int pllGetInstRateMatrix (partitionList * pr, int model, double * outBuffer)
 */
 void pllTreeInitTopologyNewick (pllInstance * tr, pllNewickTree * newick, int useDefaultz)
 {
+  printf("check : %d\n", checkTreeInclusion (tr, newick));
   linkTaxa (tr, newick, tr->nameHash && checkTreeInclusion (tr, newick));
 
   tr->start = tr->nodep[1];
+
+  // printf ("Tree topology: ");
+  // for (int i = 1; i <= tr->mxtips; ++ i)
+  //  {
+  //    printf("%d ", tr->nodep[i]->number);
+  //  }
+  // printf ("\n");
 
   if (useDefaultz == PLL_TRUE)
     resetBranches (tr);

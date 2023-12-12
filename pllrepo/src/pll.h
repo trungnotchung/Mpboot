@@ -298,6 +298,7 @@ typedef struct
   int useRecom;
   long randomNumberSeed;
   int numberOfThreads;
+  int numAddRows;
 } pllInstanceAttr;
 
 /** @brief Stores the recomputation-state of likelihood vectors  */
@@ -697,6 +698,7 @@ typedef  struct noderec
   char             x;
   char             xPars;
   char             xBips;
+  int              numOriginalLeaves; // 0: not contain original node, 1: contains original node
 }
   node, *nodeptr;
 
@@ -1258,6 +1260,7 @@ typedef  struct  {
   pllBoolean        compressPatterns;
   double         likelihoodEpsilon;
   pllBoolean        useCheckpoint;
+  int              numAddRows; // -ppk
 
 } pllInstance;
 

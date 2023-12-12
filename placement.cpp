@@ -298,6 +298,44 @@ void configLeafNames(IQTree* tree, Node *node, Node * dad)
     FOR_NEIGHBOR_IT(node, dad, it)configLeafNames(tree, (*it)->node, node);
 }
 
+void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = "")
+{
+	IQTree* tree = new IQTree(alignment);
+	tree->params = &params;
+	if (newickTree == "") {
+		bool is_rooted = params.is_rooted;
+		tree->readTree(params.mutation_tree_file, is_rooted);
+	} else {
+		tree->readTreeString(newickTree);
+	}
+	ofstream fout1("tree1.txt");
+	tree->drawTree(fout1, WT_SORT_TAXA | WT_NEWLINE);
+
+	// becasue the tree is read from file and file contains its name, not its id
+	configLeafNames(tree, tree->root, NULL);
+
+	tree->initializeAllPartialPars();
+	tree->clearAllPartialLH();
+	tree->curScore = tree->computeParsimony();
+	cout << tree->curScore << '\n';
+
+	// // print score of tree before running SPR
+	// ofstream fout("score.txt");
+	// // fout << tree->curScore;
+	// fout.close();
+
+	// cout << "wtfdone\n";
+
+	// fout.open("tree.txt");
+	// double start_time = getCPUTime();
+	cout << tree->ppRunOriginalSpr() << "\n";
+	ofstream fout2("tree2.txt");
+	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
+	// double end_time = getCPUTime();
+	// cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	// fout.close();
+}
+
 void addMoreRowMutation(Params &params)
 {
 	Alignment *alignment;
@@ -351,32 +389,8 @@ void addMoreRowMutation(Params &params)
 	
 	if (params.pporigspr)
 	{		
-		tree->params = &params;
-		bool is_rooted = params.is_rooted;
-		tree->readTree(params.mutation_tree_file, is_rooted);
-		configLeafNames(tree, tree->root, NULL);
-
-		tree->initializeAllPartialPars();
-		tree->clearAllPartialLH();
-		tree->curScore = tree->computeParsimony();
-
-
-		// print score of tree before running SPR
-		ofstream fout("score.txt");
-		fout << tree->curScore;
-		fout.close();
-
-		fout.open("tree.txt");
-		double start_time = getCPUTime();
-		fout << tree->ppRunOriginalSpr();
-		double end_time = getCPUTime();
-		cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
-		fout.close();
-
-		delete tree->aln;
-		tree->aln = NULL;
-		delete tree;
-
+		ppRunOriginalSpr(alignment, params);
+		delete alignment;
 		return;
 	}
 	
@@ -501,6 +515,20 @@ void addMoreRowMutation(Params &params)
     cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
 
 	// matOptimize(&tree, alignment, missingSamples[0].name, 2);
+
+	stringstream ss;
+	tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
+	string treeAfterPhase1 = ss.str();
+	cout << "Tree after phase 1: " << treeAfterPhase1 << '\n';
+
+	for (int i = 0; i < missingSamples.size(); ++i)
+	{
+		alignment->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
+	}
+
+	params.numStartRow = alignment->size();
+	ppRunOriginalSpr(alignment, params, treeAfterPhase1);
+	
 	delete tree->aln;
     tree->aln = NULL;
 	delete tree;

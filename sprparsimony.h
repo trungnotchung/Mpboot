@@ -54,4 +54,6 @@ extern void pllSortedAlignmentRemoveDups (pllAlignmentData * alignmentData, part
 // add more row using pll core 
 int _pllAddMoreRow(pllInstance *tr, partitionList *pr);
 
+int myPllOptimizeSprParsimony(pllInstance * tr, partitionList * pr, int mintrav, int maxtrav, IQTree *iqtree);
+
 #endif /* SPRPARSIMONY_H_ */
