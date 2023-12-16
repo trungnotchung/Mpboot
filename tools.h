@@ -516,12 +516,22 @@ struct Params
         /**
          * Tree file name
         */
-        char* mutation_tree_file;
+        char* mutation_tree_file;       
+
+        /**
+         * Original tree file name
+        */
+        char* original_tree_file;
 
         /**
          *  Placement problem
          */
-        bool isPlacement;
+        bool ppon;
+
+        /**
+         * Checking correct tree 
+        */
+        bool pp_test_spr;
 
         /**
          *  Number of starting parsimony trees

@@ -675,6 +675,32 @@ protected:
     int k_represent;
 
 public:
+
+    /**
+     * get all leaf names of the tree.
+    */    
+    void getLeafName(vector<string> &leafName);
+
+    void getLeafName(Node *node, Node *dad, vector<string>& leafName);
+
+    /**
+     * Assign root with given name.
+    */
+    void assignRoot(string &rootName);
+
+    bool assignRoot(Node *node, Node *dad, string &rootName);
+
+    /**
+     * Init info which node is original node, which node is added node.
+    */
+    int initInfoNode(vector<string> &leafName);
+
+    int initInfoNode(PhyloNode *node, PhyloNode *dad, vector<string> &leafName);
+
+    bool compareTree(IQTree *anotherTree);
+
+    bool compareTree(PhyloNode *node1, PhyloNode *dad1, Node *node2, Node *dad2);
+
     /**
      *  @brief: optimize model parameters on the current tree
      *  either IQ-TREE or PLL

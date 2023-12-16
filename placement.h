@@ -24,4 +24,7 @@ int computeParsimonyPermutation(IQTree *tree, Alignment *alignment, Params &para
 
 // add more K row using mutation like usher
 void addMoreRowMutation(Params &params);
+
+// check if origin tree doesn't change.
+void checkCorrectTree(char *originTreeFile, char *newTreeFile);
 #endif

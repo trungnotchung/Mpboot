@@ -2321,7 +2321,7 @@ int main(int argc, char *argv[])
 
 	cout.precision(3);
 	cout.setf(ios::fixed);
-	if(params.isPlacement) {
+	if(params.ppon) {
 		addMoreRowMutation(params);
 	} // call the main function
 	else if (params.tree_gen != NONE) {

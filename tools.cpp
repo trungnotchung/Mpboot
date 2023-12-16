@@ -639,7 +639,8 @@ void parseArg(int argc, char *argv[], Params &params)
 	params.numStartRow = 1000000000;
 	params.numAddRow = 0;
 	params.mutation_tree_file = NULL;
-	params.isPlacement = false;
+	params.ppon = false;
+	params.pp_test_spr = false;
 	verbose_mode = VB_MIN;
 	params.tree_gen = NONE;
 	params.user_file = NULL;
@@ -944,6 +945,17 @@ void parseArg(int argc, char *argv[], Params &params)
 #endif
 				continue;
 			}
+			if(strcmp(argv[cnt], "-pp_test_spr") == 0)
+			{
+				params.pp_test_spr = true;
+				continue;
+			}
+			if(strcmp(argv[cnt], "-pp_origin") == 0)
+			{
+				cnt++;
+				params.original_tree_file = argv[cnt];
+				continue;
+			}
 			if (strcmp(argv[cnt], "-pporigspr") == 0)
 			{
 				params.pporigspr = true;
@@ -956,7 +968,7 @@ void parseArg(int argc, char *argv[], Params &params)
 			}
 			if (strcmp(argv[cnt], "-ppon") == 0)
 			{
-				params.isPlacement = true;
+				params.ppon = true;
 				continue;
 			}
 			if (strcmp(argv[cnt], "-ppn") == 0)

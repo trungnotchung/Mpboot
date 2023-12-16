@@ -276,8 +276,6 @@ int updatePermutation(IQTree *tree, Alignment *alignment, Params &params, const 
 	return bestScore;
 }
 
-
-
 int computeParsimonyPermutation(IQTree *tree, Alignment *alignment, Params &params, const vector<int> &permCol, const vector<int> &perm)
 {
 	IQTree newTree;
@@ -288,6 +286,32 @@ int computeParsimonyPermutation(IQTree *tree, Alignment *alignment, Params &para
 	delete newTree.aln;
 	newTree.aln = NULL;
 	return score;
+}
+
+void checkCorectTree(char* originTreeFile, char* newTreeFile)
+{
+	IQTree *originTree = new IQTree;
+	bool originIsRooted = false;
+	originTree->readTree(originTreeFile, originIsRooted);
+
+	IQTree *newTree = new IQTree;
+	bool newIsRooted = false;
+	newTree->readTree(newTreeFile, newIsRooted);
+
+	vector<string> originLeafName;
+	originTree->getLeafName(originLeafName);
+
+	newTree->assignRoot(originLeafName[0]);
+	sort(originLeafName.begin(), originLeafName.end());
+	cout << newTree->initInfoNode(originLeafName) << '\n';
+
+	if(newTree->compareTree(originTree))
+		cout << "Correct tree\n";
+	else
+		cout << "Wrong tree\n";
+
+	delete originTree;
+	delete newTree;
 }
 
 void configLeafNames(IQTree* tree, Node *node, Node * dad)
@@ -306,10 +330,9 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 		bool is_rooted = params.is_rooted;
 		tree->readTree(params.mutation_tree_file, is_rooted);
 	} else {
-		cout << "Alive\n";
 		tree->readTreeString(newickTree);
-		cout << "Alive\n";
 	}
+
 	ofstream fout1("tree1.txt");
 	tree->drawTree(fout1, WT_SORT_TAXA | WT_NEWLINE);
 
@@ -330,12 +353,20 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 
 	// fout.open("tree.txt");
 	// double start_time = getCPUTime();
-	cout << tree->ppRunOriginalSpr() << "\n";
+	string newTreeString = tree->ppRunOriginalSpr();
 	ofstream fout2("tree2.txt");
 	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
 	// double end_time = getCPUTime();
 	// cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
 	// fout.close();
+
+	if(params.pp_test_spr) 
+	{
+		ofstream fout("newTree.txt");
+		tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
+		fout.close();
+		checkCorectTree(params.original_tree_file, "newTree.txt");
+	}
 }
 
 void addMoreRowMutation(Params &params)
@@ -516,7 +547,8 @@ void addMoreRowMutation(Params &params)
     cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
     cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
 
-	// matOptimize(&tree, alignment, missingSamples[0].name, 2);
+	ofstream fout("addedTree.txt");
+	tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
 
 	stringstream ss;
 	tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
