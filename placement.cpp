@@ -306,7 +306,9 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 		bool is_rooted = params.is_rooted;
 		tree->readTree(params.mutation_tree_file, is_rooted);
 	} else {
+		cout << "Alive\n";
 		tree->readTreeString(newickTree);
+		cout << "Alive\n";
 	}
 	ofstream fout1("tree1.txt");
 	tree->drawTree(fout1, WT_SORT_TAXA | WT_NEWLINE);
@@ -488,7 +490,6 @@ void addMoreRowMutation(Params &params)
 
         for (int j = 0; j < (int)bfs.size(); ++j)
         {
-            // cout << "here\n";
             CandidateNode inp;
             inp.node = bfs[j].first;
             inp.node_branch = bfs[j].second;
@@ -506,10 +507,11 @@ void addMoreRowMutation(Params &params)
 
             tree->calculatePlacementMutation(inp, false, true);
         }
+
         tree->addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
         // tree->aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
         // tree->checkMutation(pos);
-        // cout << newtree->computeParsimonyScoreMutation() << " " << newtree->computeParsimonyScore() << '\n';
+        // cout << tree->computeParsimonyScoreMutation() << " " << tree->computeParsimonyScore() << '\n';
     }
     cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
     cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
@@ -519,14 +521,13 @@ void addMoreRowMutation(Params &params)
 	stringstream ss;
 	tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
 	string treeAfterPhase1 = ss.str();
-	cout << "Tree after phase 1: " << treeAfterPhase1 << '\n';
 
-	for (int i = 0; i < missingSamples.size(); ++i)
+	for (int i = 0; i < numSample; ++i)
 	{
 		alignment->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
 	}
-
 	params.numStartRow = alignment->size();
+
 	ppRunOriginalSpr(alignment, params, treeAfterPhase1);
 	
 	delete tree->aln;

@@ -5899,7 +5899,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
 void PhyloTree::addNewSample(PhyloNode* best_node, PhyloNeighbor* best_node_branch, std::vector<Mutation> node_excess_mutations, int index, std::string sample_name)
 {
     PhyloNode* new_node = (PhyloNode*)newNode();
-    PhyloNode* sample = (PhyloNode*)newNode(aln->getNSeq(), sample_name.c_str());
+    PhyloNode* sample = (PhyloNode*)newNode(aln->getNSeq() + index, sample_name.c_str());
     sample->setMissingNode(index);
     new_node->addNeighbor(sample, -1.0);
     sample->addNeighbor(new_node, -1.0);
