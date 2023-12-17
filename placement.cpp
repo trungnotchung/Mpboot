@@ -290,6 +290,7 @@ int computeParsimonyPermutation(IQTree *tree, Alignment *alignment, Params &para
 
 void checkCorectTree(char* originTreeFile, char* newTreeFile)
 {
+	cout << "================= Check correct tree ================\n";
 	IQTree *originTree = new IQTree;
 	bool originIsRooted = false;
 	originTree->readTree(originTreeFile, originIsRooted);
@@ -303,7 +304,7 @@ void checkCorectTree(char* originTreeFile, char* newTreeFile)
 
 	newTree->assignRoot(originLeafName[0]);
 	sort(originLeafName.begin(), originLeafName.end());
-	cout << newTree->initInfoNode(originLeafName) << '\n';
+	newTree->initInfoNode(originLeafName);
 
 	if(newTree->compareTree(originTree))
 		cout << "Correct tree\n";

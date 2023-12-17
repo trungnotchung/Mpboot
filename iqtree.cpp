@@ -5338,9 +5338,8 @@ int IQTree::initInfoNode(vector<string> &leafName) {
     PhyloNode *node1 = (PhyloNode *)root;
     PhyloNode *node2 = (PhyloNode *)root->neighbors[0]->node;
 
-    int tmp1 = initInfoNode(node1, node2, leafName);
-    int tmp2 = initInfoNode(node2, node1, leafName);
-    return tmp1 + tmp2;
+    initInfoNode(node1, node2, leafName);
+    initInfoNode(node2, node1, leafName);
 }
 
 int IQTree::initInfoNode(PhyloNode *node, PhyloNode *dad, vector<string> &leafName) {
@@ -5381,7 +5380,7 @@ int IQTree::initInfoNode(PhyloNode *node, PhyloNode *dad, vector<string> &leafNa
 
 bool IQTree::compareTree(IQTree *anotherTree) {
     if(root->name != anotherTree->root->name) return false;
-    return compareTree((PhyloNode *)root->neighbors[0]->node, (PhyloNode *)root, anotherTree->root->neighbors[0]->node, anotherTree->root);
+    return compareTree((PhyloNode *)root, NULL, anotherTree->root, NULL);
 }
 
 bool IQTree::compareTree(PhyloNode *node1, PhyloNode *dad1, Node *node2, Node *dad2) {
