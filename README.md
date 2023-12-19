@@ -18,7 +18,7 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * **-pp_n**: number of available samples on tree.
 * **-pp_k**: number of missing samples.
 * **-pp_tree**: tree file.
-* **-pp_origspr**: run spr without changing origin tree.
+* **-pp_orig_spr**: run spr without changing origin tree.
 * **-pp_test_spr**: enable check correct tree.
 * **-pp_origin**: origin tree file.
 
@@ -33,6 +33,7 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * Check if tree unchanged
   <br>
   ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_spr -pp_k <missing samples>``
+  <br>
   *Example:*
   <br>
   ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_spr -pp_k 5``
