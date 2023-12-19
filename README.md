@@ -18,6 +18,7 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * **-ppn**: number of available samples on tree.
 * **-ppk**: number of missing samples.
 * **-pptree**: tree file.
+* **-pp_origspr**: run spr without changing origin tree.
 * **-pp_test_spr**: enable check correct tree.
 * **-pp_origin**: origin tree file.
 
