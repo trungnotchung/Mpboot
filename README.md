@@ -26,6 +26,7 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
   <br>
   ``./mpboot -s <vcf file> -pptree <tree file> -ppon -ppn <existing samples> -ppk <missing samples>``
 * Check if tree unchanged
+  <br>
   ``./mpboot -s <vcf file> -pptree <tree file> -pp_origin <origin tree file> -ppon -pp_test_spr -ppk <missing samples>``
 
 <hr>
