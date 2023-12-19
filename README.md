@@ -25,17 +25,17 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 ### **Command**
 * Add missing samples to existing tree:
   <br>
-  ``./mpboot -s <vcf file> -pptree <tree file> -ppon -ppn <existing samples> -ppk <missing samples>``
+  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_on -pp_n <existing samples> -pp_k <missing samples>``
   <br>
   *Example:*
   <br>
-  ``./mpboot -s data/test5/1/added5.vcf -pptree data/test5/1/origin5.fasta.treefile -ppon -ppk 5 -ppn 5``
+  ``./mpboot -s data/test5/1/added5.vcf -pp_tree data/test5/1/origin5.fasta.treefile -pp_on -pp_k 5 -pp_n 5``
 * Check if tree unchanged
   <br>
-  ``./mpboot -s <vcf file> -pptree <tree file> -pp_origin <origin tree file> -ppon -pp_test_spr -ppk <missing samples>``
+  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_spr -pp_k <missing samples>``
   *Example:*
   <br>
-  ``./mpboot -s data/test5/1/added5.vcf -pptree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -ppon -pp_test_spr -ppk 5``
+  ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_spr -pp_k 5``
 <hr>
 <br><br><br>
 
