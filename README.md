@@ -12,6 +12,22 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * Run **make**
 * You will find the executable named **mpboot** once the **make** command is done.
 
+## **PLACEMENT CORE** 
+### **Parameter**
+* **-ppon**: enable placement.
+* **-ppn**: number of available samples on tree.
+* **-ppk**: number of missing samples.
+* **-pptree**: tree file.
+* **-pp_test_spr**: enable check correct tree.
+* **-pp_origin**: origin tree file.
+
+### **Command**
+* Add missing samples to existing tree:
+  <br>
+  ``./mpboot -s <vcf file> -pptree <tree file> -ppon -ppn <existing samples> -ppk <missing samples>``
+* Check if tree unchanged
+  ``./mpboot -s <vcf file> -pptree <tree file> -pp_origin <origin tree file> -ppon -pp_test_spr -ppk <missing samples>``
+
 <hr>
 <br><br><br>
 
