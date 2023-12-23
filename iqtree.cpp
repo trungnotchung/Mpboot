@@ -2529,8 +2529,6 @@ string IQTree::ppRunOriginalSpr()
     pllTreeInitTopologyNewick(pllInst, btree, PLL_FALSE);
     pllNewickParseDestroy(&btree);
 
-    printf("parsimony score in pll: %d\n", pllInst->bestParsimony);
-
     assert(pllInst != NULL && pllPartitions != NULL);
     printf("spr start\n");
     printf("spr radius: %d %d\n", params->spr_mintrav, params->spr_maxtrav);

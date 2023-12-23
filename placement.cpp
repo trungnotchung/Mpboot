@@ -343,7 +343,7 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 	tree->initializeAllPartialPars();
 	tree->clearAllPartialLH();
 	tree->curScore = tree->computeParsimony();
-	cout << tree->curScore << '\n';
+	cout << "tree's score before running spr: " << tree->curScore << '\n';
 
 	// // print score of tree before running SPR
 	// ofstream fout("score.txt");

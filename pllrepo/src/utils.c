@@ -2277,7 +2277,6 @@ int pllGetInstRateMatrix (partitionList * pr, int model, double * outBuffer)
 */
 void pllTreeInitTopologyNewick (pllInstance * tr, pllNewickTree * newick, int useDefaultz)
 {
-  printf("check : %d\n", checkTreeInclusion (tr, newick));
   linkTaxa (tr, newick, tr->nameHash && checkTreeInclusion (tr, newick));
 
   tr->start = tr->nodep[1];
