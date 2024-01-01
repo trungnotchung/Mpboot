@@ -956,7 +956,7 @@ void parseArg(int argc, char *argv[], Params &params)
 				params.original_tree_file = argv[cnt];
 				continue;
 			}
-			if (strcmp(argv[cnt], "-pporigspr") == 0)
+			if (strcmp(argv[cnt], "-pp_origspr") == 0)
 			{
 				params.pporigspr = true;
 				continue;
@@ -966,24 +966,24 @@ void parseArg(int argc, char *argv[], Params &params)
 				params.analyze_alignment = true;
 				continue;
 			}
-			if (strcmp(argv[cnt], "-ppon") == 0)
+			if (strcmp(argv[cnt], "-pp_on") == 0)
 			{
 				params.ppon = true;
 				continue;
 			}
-			if (strcmp(argv[cnt], "-ppn") == 0)
+			if (strcmp(argv[cnt], "-pp_n") == 0)
 			{
 				cnt++;
 				params.numStartRow = convert_int(argv[cnt]);
 				continue;
 			}
-			if (strcmp(argv[cnt], "-ppk") == 0)
+			if (strcmp(argv[cnt], "-pp_k") == 0)
 			{
 				cnt++;
 				params.numAddRow = convert_int(argv[cnt]);
 				continue;
 			}
-			if (strcmp(argv[cnt], "-pptree") == 0)
+			if (strcmp(argv[cnt], "-pp_tree") == 0)
 			{
 				cnt++;
 				params.mutation_tree_file = argv[cnt];
