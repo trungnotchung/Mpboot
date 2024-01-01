@@ -5336,8 +5336,9 @@ int IQTree::initInfoNode(vector<string> &leafName) {
     PhyloNode *node1 = (PhyloNode *)root;
     PhyloNode *node2 = (PhyloNode *)root->neighbors[0]->node;
 
-    initInfoNode(node1, node2, leafName);
-    initInfoNode(node2, node1, leafName);
+    int lf = initInfoNode(node1, node2, leafName);
+    int rg = initInfoNode(node2, node1, leafName);
+    return lf + rg;
 }
 
 int IQTree::initInfoNode(PhyloNode *node, PhyloNode *dad, vector<string> &leafName) {
