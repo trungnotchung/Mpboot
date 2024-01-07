@@ -32,11 +32,11 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
   ``./mpboot -s data/test5/1/added5.vcf -pp_tree data/test5/1/origin5.fasta.treefile -pp_on -pp_k 5 -pp_n 5``
 * Check if tree unchanged
   <br>
-  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_spr -pp_k <missing samples>``
+  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_spr -pp_k <missing samples> -pp_orig_spr``
   <br>
   *Example:*
   <br>
-  ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_spr -pp_k 5``
+  ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_spr -pp_k 5 -pp_orig_spr``
 <hr>
 <br><br><br>
 
