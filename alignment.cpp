@@ -1547,7 +1547,6 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
             remainSeq.resize(missingSamplesNames.size());
         }
         else {
-            // cout << (int)words.size() << " " << nseq << " " << (int)missingSamples.size() << '\n';
             if (words.size() != 9 + nseq + missingSamples.size())
                 throw "Number of columns in VCF file is not consistent";
             vector<string> alleles;

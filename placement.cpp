@@ -372,64 +372,35 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 
 void addMoreRowMutation(Params &params)
 {
-	Alignment *alignment;
 	IQTree *tree;
+	tree = new IQTree;
 
-	/****************** read in alignment **********************/
-	if (params.partition_file)
 	{
-		// Partition model analysis
-		if (params.partition_type)
-		{
-			// since nni5 does not work yet, stop the programm
-			if (params.nni5)
-				outError("-nni5 option is unsupported yet for proportitional partition model. please use -nni1 option");
-			if (params.aLRT_replicates)
-				outError("-alrt option is unsupported yet for proportitional partition model");
-			// initialize supertree - Proportional Edges case, "-spt p" option
-			tree = new PhyloSuperTreePlen(params);
-		}
-		else
-		{
-			// initialize supertree stuff if user specifies partition file with -sp option
-			tree = new PhyloSuperTree(params);
-		}
-		// this alignment will actually be of type SuperAlignment
-		alignment = tree->aln;
-	}
-	else if (params.maximum_parsimony && params.sankoff_cost_file)
-	{
-		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype);
-		tree = new ParsTree(alignment);
-		dynamic_cast<ParsTree *>(tree)->initParsData(&params);
-	}
-	else
-	{
-		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
+		tree->aln = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
 		if (params.maximum_parsimony && !params.sankoff_cost_file && params.condense_parsimony_equiv_sites)
 		{
 			Alignment *aln = new Alignment();
-			aln->condenseParsimonyEquivalentSites(alignment);
-			delete alignment;
-			alignment = aln;
+			aln->condenseParsimonyEquivalentSites(tree->aln);
+			delete tree->aln;
+			tree->aln = aln;
 		}
 		if (params.analyze_alignment)
 		{
-			alignment->analyzeAlignment();
+			tree->aln->analyzeAlignment();
 		}
 	}
 
-	alignment->checkGappySeq();
+	tree->aln->checkGappySeq();
 	
 	if (params.pporigspr)
 	{		
-		ppRunOriginalSpr(alignment, params);
-		delete alignment;
+		ppRunOriginalSpr(tree->aln, params);
+		delete tree->aln;
+		delete tree;
 		return;
 	}
 	
     cout << "\n========== Start placement core ==========\n";
-	tree = new IQTree;
     auto startTime = getCPUTime();
     char* file_name = params.mutation_tree_file;
     bool is_rooted = false;
@@ -437,26 +408,20 @@ void addMoreRowMutation(Params &params)
 	tree->add_row = true;
 	
 	// Init new tree's alignment
-    tree->setAlignment(alignment);
-    tree->aln = new Alignment;
-    tree->aln->copyAlignment(alignment);
     tree->aln->ungroupSitePattern();
-    tree->aln->missingSamples = alignment->missingSamples;
-    tree->aln->existingSamples = alignment->existingSamples;
-    tree->aln->reference_nuc = alignment->reference_nuc;
 
 	// Init new tree's memory
 	tree->save_branch_states_dad = new UINT[(tree->aln->size() + 7) / 8 + 1];
 
     cout << "Tree parsimony before add k rows: " << tree->computeParsimony() << '\n';
-    vector<int> permCol = alignment->findPermCol();
+    vector<int> permCol = tree->aln->findPermCol();
     vector<int> savePermCol = permCol;
     vector<int> pos;
 
-    if (alignment->existingSamples.size())
+    if (tree->aln->existingSamples.size())
     {
         for (auto& m : permCol)
-            m = alignment->existingSamples[0][m].position;
+            m = tree->aln->existingSamples[0][m].position;
     }
     else
     {
@@ -482,12 +447,12 @@ void addMoreRowMutation(Params &params)
 
     cout << "Tree parsimony after init mutations: " << tree->computeParsimony() << " " << tree->computeParsimonyScoreMutation() << '\n';
     // tree->checkMutation(pos);
-	int num_sample = (int)alignment->missingSamples.size();
+	int num_sample = (int)tree->aln->missingSamples.size();
     vector<MutationNode> missingSamples(num_sample);
-    for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
+    for (int i = 0; i < (int)tree->aln->missingSamples.size(); ++i)
     {
-        missingSamples[i].mutations = alignment->missingSamples[i];
-        missingSamples[i].name = alignment->missingSamples[i][0].name;
+        missingSamples[i].mutations = tree->aln->missingSamples[i];
+        missingSamples[i].name = tree->aln->missingSamples[i][0].name;
     }
 
 	int numSample = min((int)missingSamples.size(), params.numAddRow);
@@ -557,11 +522,11 @@ void addMoreRowMutation(Params &params)
 
 	for (int i = 0; i < numSample; ++i)
 	{
-		alignment->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
+		tree->aln->addToAlignmentNewSeq(missingSamples[i].name, tree->aln->remainSeq[i], savePermCol);
 	}
-	params.numStartRow = alignment->size();
+	params.numStartRow = tree->aln->size();
 
-	ppRunOriginalSpr(alignment, params, treeAfterPhase1);
+	ppRunOriginalSpr(tree->aln, params, treeAfterPhase1);
 	
 	delete tree->aln;
     tree->aln = NULL;
