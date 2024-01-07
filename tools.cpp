@@ -956,7 +956,7 @@ void parseArg(int argc, char *argv[], Params &params)
 				params.original_tree_file = argv[cnt];
 				continue;
 			}
-			if (strcmp(argv[cnt], "-pp_origspr") == 0)
+			if (strcmp(argv[cnt], "-pp_orig_spr") == 0)
 			{
 				params.pporigspr = true;
 				continue;
