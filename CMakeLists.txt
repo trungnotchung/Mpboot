@@ -280,14 +280,24 @@ elseif (IQTREE_FLAGS MATCHES "sse") #SSE intruction set
 	endif()
 endif()
 
+# Set up libzip library
+if(APPLE) 
+	set(LIBZIP_INCLUDE_DIRS "/usr/local/Cellar/libzip/1.10.1/include")
+	set(LIBZIP_LIBRARIES "/usr/local/Cellar/libzip/1.10.1/lib")
+	include_directories(${LIBZIP_INCLUDE_DIRS})
+	link_directories(${LIBZIP_LIBRARIES})
+else()
+	find_package(LibZip REQUIRED)
+	if(NOT LibZip_FOUND)
+		message(FATAL_ERROR "LibZip not found")
+	endif()
+	include_directories(${LibZip_INCLUDE_DIRS})
+	link_directories(${LibZip_LIBRARIES})
+endif()
+
 ##################################################################
 # Setup compiler flags
 ##################################################################
-set(LIBZIP_INCLUDE_DIRS "/usr/local/homebrew/Cellar/libzip/1.10.1/include")
-set(LIBZIP_LIBRARIES "/usr/local/homebrew/Cellar/libzip/1.10.1/lib")
-
-include_directories(${LIBZIP_INCLUDE_DIRS})
-link_directories(${LIBZIP_LIBRARIES})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMBINED_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMBINED_FLAGS}")
