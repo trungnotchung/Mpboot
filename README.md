@@ -21,6 +21,8 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * **-pp_orig_spr**: run spr without changing origin tree.
 * **-pp_test_spr**: enable check correct tree.
 * **-pp_origin**: origin tree file.
+* **-pp_zip_aln**: alignment's zip file.
+* **-pp_zip_tree**: tree's zip file.
 
 ### **Command**
 * Add missing samples to existing tree:
