@@ -641,6 +641,9 @@ void parseArg(int argc, char *argv[], Params &params)
 	params.mutation_tree_file = NULL;
 	params.ppon = false;
 	params.pp_test_spr = false;
+	params.tree_zip_file = NULL;
+	params.alignment_zip_file = NULL;
+	params.original_tree_file = NULL;
 	verbose_mode = VB_MIN;
 	params.tree_gen = NONE;
 	params.user_file = NULL;
@@ -945,12 +948,12 @@ void parseArg(int argc, char *argv[], Params &params)
 #endif
 				continue;
 			}
-			if(strcmp(argv[cnt], "-pp_test_spr") == 0)
+			if (strcmp(argv[cnt], "-pp_test_spr") == 0)
 			{
 				params.pp_test_spr = true;
 				continue;
 			}
-			if(strcmp(argv[cnt], "-pp_origin") == 0)
+			if (strcmp(argv[cnt], "-pp_origin") == 0)
 			{
 				cnt++;
 				params.original_tree_file = argv[cnt];
@@ -990,6 +993,21 @@ void parseArg(int argc, char *argv[], Params &params)
 				// cout << "Mutation tree file: " << params.mutation_tree_file << endl;
 				continue;
 			}
+
+			if (strcmp(argv[cnt], "-pp_zip_aln") == 0)
+			{
+				cnt++;
+				params.alignment_zip_file = argv[cnt];
+				continue;
+			}
+
+			if (strcmp(argv[cnt], "-pp_zip_tree") == 0)
+			{
+				cnt++;
+				params.tree_zip_file = argv[cnt];
+				continue;
+			}
+
 			if (strcmp(argv[cnt], "-ho") == 0 || strcmp(argv[cnt], "-?") == 0)
 			{
 				//				usage_iqtree(argv, false);

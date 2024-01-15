@@ -27,6 +27,8 @@
 #include <sstream>
 #include "hashsplitset.h"
 #include "splitset.h"
+#include <zip.h>
+#include <cstdio>
 
 const char ROOT_NAME[] = "_root";
 
@@ -238,6 +240,8 @@ public:
     /********************************************************
             READ TREE FROM FILE
      ********************************************************/
+
+    void readTree(const char *zipFileName, const char *infile, bool &is_rooted);
 
     /**
             read the tree from the input file in newick format

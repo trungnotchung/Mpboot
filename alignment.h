@@ -17,6 +17,7 @@
 #include "ncl/ncl.h"
 #include "tools.h"
 #include "mutation.h"
+#include <zip.h>
 
 
 // IMPORTANT: refactor STATE_UNKNOWN
@@ -60,6 +61,8 @@ public:
                 @param sequence_type type of the sequence, either "BIN", "DNA", "AA", or NULL
                 @param intype (OUT) input format of the file
          */
+        Alignment(char* zipFileName, char* filename, char* sequence_type, InputType& intype, int numStartRow = 1000000000);
+        
         Alignment(char* filename, char* sequence_type, InputType& intype, int numStartRow = 1000000000);
 
         /**

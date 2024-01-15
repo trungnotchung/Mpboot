@@ -33,8 +33,8 @@
 #include <math.h>
 #include <stdint.h>
 
- // #include <sys/time.h>
- // #include <time.h>
+// #include <sys/time.h>
+// #include <time.h>
 #include <sys/stat.h>
 #include <math.h>
 #include "ncl/ncl.h"
@@ -99,7 +99,7 @@ namespace __gnu_cxx
 
                 size_t operator()(string str) const
                 {
-                        hash<const char*> hash_str;
+                        hash<const char *> hash_str;
                         return hash_str(str.c_str());
                 }
         };
@@ -109,7 +109,7 @@ namespace __gnu_cxx
 class Linear
 {
 public:
-        Linear(int n, double* x, double* y)
+        Linear(int n, double *x, double *y)
         {
 
                 // calculate the averages of arrays x and y
@@ -212,22 +212,22 @@ typedef vector<string> StrVector;
  */
 #define matrix(T) vector<vector<T>>
 
- /**
-         matrix of double
-  */
-  /*
-  class DoubleMatrix {
-  public:
-          double *value;
-          int rows, cols, size;
-          DoubleMatrix(int arows, int acols);
-          //inline double operator() (int i, int j);
-          inline double &operator() (int i, int j) { return value[i * cols + j]; };
-          inline double *operator[] (int i) {	return value + (i*cols); };
-          virtual ~DoubleMatrix();
-          void setZero();
-  };
-   */
+/**
+        matrix of double
+ */
+/*
+class DoubleMatrix {
+public:
+        double *value;
+        int rows, cols, size;
+        DoubleMatrix(int arows, int acols);
+        //inline double operator() (int i, int j);
+        inline double &operator() (int i, int j) { return value[i * cols + j]; };
+        inline double *operator[] (int i) {	return value + (i*cols); };
+        virtual ~DoubleMatrix();
+        void setZero();
+};
+ */
 typedef matrix(double) DoubleMatrix;
 
 typedef unsigned int UINT;
@@ -332,11 +332,11 @@ const int SW_AVG_PRESENT = 4; // take the split weight average over all trees th
 /**
         search mode
  */
- // enum SearchMode {EXHAUSTIVE, EXHAUSTIVE_CIRCULAR};
+// enum SearchMode {EXHAUSTIVE, EXHAUSTIVE_CIRCULAR};
 
- /**
-         input type, tree or splits graph
-  */
+/**
+        input type, tree or splits graph
+ */
 enum InputType
 {
         IN_NEWICK,
@@ -494,13 +494,13 @@ extern int NNI_MAX_NR_STEP;
 struct Params
 {
         /**
-         * doing spr in tree 
-        */
+         * doing spr in tree
+         */
         bool pporigspr;
 
         /**
          * use if you want analyze alignment
-        */
+         */
         bool analyze_alignment;
 
         /**
@@ -510,18 +510,18 @@ struct Params
 
         /**
          * Number of adding row
-        */
-       int numAddRow;
+         */
+        int numAddRow;
 
         /**
          * Tree file name
-        */
-        char* mutation_tree_file;       
+         */
+        char *mutation_tree_file;
 
         /**
          * Original tree file name
-        */
-        char* original_tree_file;
+         */
+        char *original_tree_file;
 
         /**
          *  Placement problem
@@ -529,9 +529,19 @@ struct Params
         bool ppon;
 
         /**
-         * Checking correct tree 
-        */
+         * Checking correct tree
+         */
         bool pp_test_spr;
+
+        /**
+         * Tree zip file name
+         */
+        char *tree_zip_file;
+
+        /**
+         * Alignment zip file name
+         */
+        char *alignment_zip_file;
 
         /**
          *  Number of starting parsimony trees
@@ -661,15 +671,15 @@ struct Params
         /**
          *  OBSOLETE! Stopping rule for the tree search
          */
-         //    bool autostop;
+        //    bool autostop;
 
-         /**
-          *  Number of maximum unsuccessful iterations after the search is stopped.
-          *  Used for the automatic stopping rule
-          */
+        /**
+         *  Number of maximum unsuccessful iterations after the search is stopped.
+         *  Used for the automatic stopping rule
+         */
         int unsuccess_iteration;
 
-        char* binary_aln_file;
+        char *binary_aln_file;
 
         /**
          *  the speed up heuristic will be used after
@@ -696,7 +706,7 @@ struct Params
         /**
                  input file name
          */
-        char* user_file;
+        char *user_file;
 
         /* type of starting tree */
         START_TREE_TYPE start_tree;
@@ -704,17 +714,17 @@ struct Params
         /**
                 prefix of the output file, default is the same as input file
          */
-        char* out_prefix;
+        char *out_prefix;
 
         /**
                 alignment file name
          */
-        char* aln_file;
+        char *aln_file;
 
         /**
                 file containing multiple trees to evaluate at the end
          */
-        char* treeset_file;
+        char *treeset_file;
 
         /** number of bootstrap replicates for tree topology test */
         int topotest_replicates;
@@ -728,7 +738,7 @@ struct Params
         /**
                 file specifying partition model
          */
-        char* partition_file;
+        char *partition_file;
 
         /**
          * 		defines the relation between edge lengths in supertree and subtrees
@@ -747,40 +757,40 @@ struct Params
         /**
                 B, D, or P for Binary, DNA, or Protein sequences
          */
-        char* sequence_type;
+        char *sequence_type;
 
         /**
                 alignment output file name
          */
-        char* aln_output;
+        char *aln_output;
 
         /**
                 file containing site likelihood as input for 'guided bootstrap' (added by MA)
          */
-        char* siteLL_file;
+        char *siteLL_file;
 
         /**
                 alignment where the gappy patterns will be superimposed into the input alignment
          */
-        char* gap_masked_aln;
+        char *gap_masked_aln;
 
         /**
                 alignment to be concatenated into the input alignment
          */
-        char* concatenate_aln;
+        char *concatenate_aln;
 
         /**
                 file containing list of sites posititon to keep, format:
                 pos1 pos2
                 ....
          */
-        char* aln_site_list;
+        char *aln_site_list;
 
         /**
                 name of the reference sequence where aln_site_list is based on,
                 NULL to take alignment positions.
          */
-        char* ref_seq_name;
+        char *ref_seq_name;
 
         /**
                 alignment output format
@@ -800,17 +810,17 @@ struct Params
         /**
                 OBSOLETE compute parsimony score on trees
          */
-         //    bool parsimony;
+        //    bool parsimony;
 
-         /**
-                 compute random step-wise addition parsimony tree instead of BIONJ
-          */
-          //    bool parsimony_tree;
+        /**
+                compute random step-wise addition parsimony tree instead of BIONJ
+         */
+        //    bool parsimony_tree;
 
-          /**
-                   output file name
-           */
-        char* out_file;
+        /**
+                 output file name
+         */
+        char *out_file;
 
         /**
                  size of the maximal PD-tree
@@ -878,28 +888,28 @@ struct Params
         /**
                  parameter file
          */
-        char* param_file;
+        char *param_file;
 
         /**
                 file containing taxa names to be included into the PD-tree
          */
-        char* initial_file;
+        char *initial_file;
 
         /**
                 file containing area names to be included into the PD set
          */
-        char* initial_area_file;
+        char *initial_area_file;
 
         /**
                 file containing a list of specific taxa sets which user wants
                 to compute PD score on these sets only
          */
-        char* pdtaxa_file;
+        char *pdtaxa_file;
 
         /**
                 sets relation file, in form of a distance matrix file
          */
-        char* areas_boundary_file;
+        char *areas_boundary_file;
 
         /**
                 boundary length modifier
@@ -909,7 +919,7 @@ struct Params
         /**
                 output file to store the distance matrix
          */
-        char* dist_file;
+        char *dist_file;
 
         /**
                 TRUE to compute the observed distances instead of Juke-Cantor distances, default: FALSE
@@ -934,7 +944,7 @@ struct Params
         /**
                 file containing budget information
          */
-        char* budget_file;
+        char *budget_file;
 
         /**
                 used when generating pair of taxa set with overlapping
@@ -975,7 +985,7 @@ struct Params
         /**
                 name of the root taxon
          */
-        char* root;
+        char *root;
 
         /**
                 true if tree is forced to be rooted
@@ -1030,12 +1040,12 @@ struct Params
         /**
                 2nd user tree used in assignBootstrapSupport
          */
-        char* second_tree;
+        char *second_tree;
 
         /**
                 2nd alignment used in computing multinomialProb (Added by MA)
          */
-        char* second_align;
+        char *second_align;
         /**
                 type of consensus building
          */
@@ -1044,7 +1054,7 @@ struct Params
         /**
                 file containing weights for every tree in the input tree file
          */
-        char* tree_weight_file;
+        char *tree_weight_file;
 
         /**
                 set the TRUE if want to find the minimal PD set, instead of the default maximal PD set
@@ -1064,7 +1074,7 @@ struct Params
         /**
                 to find PD complementarity given this area
          */
-        char* complement_area;
+        char *complement_area;
 
         /**
                 used for likelihood mapping: for each branch, print the four cluster
@@ -1074,7 +1084,7 @@ struct Params
         /**
                 file containing taxa order
          */
-        char* taxa_order_file;
+        char *taxa_order_file;
 
         /**
                 to scale branch length or clade support with a factor
@@ -1167,7 +1177,7 @@ struct Params
         string model_name;
 
         /** set of models for testing */
-        char* model_set;
+        char *model_set;
 
         /**
                 TRUE to store transition matrix into a hash table for computation efficiency
@@ -1242,7 +1252,7 @@ struct Params
             must equal m, where m is the alignment length. Otherwise, an error will occur.
             The default bootstrap_spec == NULL, a standard procedure is applied, i.e., randomly draw m sites.
         */
-        char* bootstrap_spec;
+        char *bootstrap_spec;
 
         /**
                 1 if output all intermediate trees from every IQPNNI iteration
@@ -1381,19 +1391,19 @@ struct Params
                 2  f_2
                 ...
          */
-        char* rate_file;
+        char *rate_file;
 
         /***** NGS stuffs   ********/
 
         /**
                 next-generation sequencing input file for Fritz project
          */
-        char* ngs_file;
+        char *ngs_file;
 
         /**
                 next-generation sequencing input file containing mapped reads to the reference genome
          */
-        char* ngs_mapped_reads;
+        char *ngs_mapped_reads;
 
         bool ngs_ignore_gaps;
 
@@ -1402,7 +1412,7 @@ struct Params
         /**
                 File containing p-values of the genes, for GSS project with Roland
          */
-        char* gene_pvalue_file;
+        char *gene_pvalue_file;
 
         /**
                 scaling factor for the p-values
@@ -1424,17 +1434,17 @@ struct Params
         /**
                 NCBI taxon rank, restricting the tree to that rank
          */
-        const char* ncbi_taxon_level;
+        const char *ncbi_taxon_level;
 
         /**
                 rank to ingore, e.g., "no rank", branch length to such node will be set to zero
          */
-        const char* ncbi_ignore_level;
+        const char *ncbi_ignore_level;
 
         /**
                 typically names.dmp from NCBI
          */
-        const char* ncbi_names_file;
+        const char *ncbi_names_file;
 
         /**********************************************/
         /******* variables for ECOpd analysis *********/
@@ -1442,17 +1452,17 @@ struct Params
         /**
                 eco_dag_file - contains the food web in matrix form (n species, nxn matrix), 0 for no connection, 1 for predation of j predator on i prey
         */
-        char* eco_dag_file;
+        char *eco_dag_file;
 
         /**
                     eco_detail_file - contains IDs of species present in the final set and/or species absent in the TREE or SPLIT system, but present in the food web
             */
-        const char* eco_detail_file;
+        const char *eco_detail_file;
 
         /*
          * the type of the phylo input - tree or network
          */
-        const char* eco_type;
+        const char *eco_type;
 
         /*
                 k% - percent of species to be conserved
@@ -1560,9 +1570,9 @@ struct Params
         /**
                 Obsolete: TRUE to optimize 5 branches around NNI
          */
-         // bool nni_opt_5branches;
+        // bool nni_opt_5branches;
 
-         /** print some output info for NNI */
+        /** print some output info for NNI */
         bool testNNI;
 
         /** TRUE to do approximate NNIs with approximate branch lengths before a normal NNI */
@@ -1584,7 +1594,7 @@ struct Params
         /**
                 partition definition for Arndt's bootstrap plot
          */
-        char* bootlh_partitions;
+        char *bootlh_partitions;
 
         /** precision when printing out for floating-point number */
         int numeric_precision;
@@ -1594,7 +1604,7 @@ struct Params
          * site_ID state1_freq state2_freq ... staten_freq
          * where site_ID is from 1 to m (m=number of sites)
          */
-        char* site_freq_file;
+        char *site_freq_file;
 
         /*
          * Diep:
@@ -1620,7 +1630,7 @@ struct Params
          * Diep:
          * Name of file storing Sankoff cost matrix
          */
-        char* sankoff_cost_file;
+        char *sankoff_cost_file;
 
         /** TRUE if using unsigned short for pattern parsimony score */
         bool sankoff_short_int;
@@ -1747,7 +1757,7 @@ struct Params
         int model_test_sample_size;
 
         /** root state, for Tina's zoombie domain */
-        char* root_state;
+        char *root_state;
 
         /**
          * TRUE to print bootstrap alignments, default: false
@@ -1834,12 +1844,12 @@ inline bool is_newick_token(char ch)
 /**
         print error message then exit program
  */
- // void outError(char *error);
+// void outError(char *error);
 
- /**
-         print error message then exit program
-  */
-void outError(const char* error);
+/**
+        print error message then exit program
+ */
+void outError(const char *error);
 
 /**
         print error message then exit program
@@ -1852,18 +1862,18 @@ void outError(string error);
 /**
         print double error messages then exit program
  */
-void outError(const char* error, const char* msg);
+void outError(const char *error, const char *msg);
 
 /**
         print double error messages then exit program
  */
-void outError(const char* error, string msg);
+void outError(const char *error, string msg);
 
 /**
         Output a warning message to screen
         @param error warning message
  */
-void outWarning(const char* warn);
+void outWarning(const char *warn);
 void outWarning(string warn);
 
 /*--------------------------------------------------------------*/
@@ -1875,18 +1885,18 @@ void outWarning(string warn);
         length is in the range (params.min_len, params.max_len)
         @return the random branch length
  */
-double randomLen(Params& params);
+double randomLen(Params &params);
 
 /**
         convert string to int, with error checking
         @param str original string
         @return the integer
  */
- /**
-         Compute the logarithm of the factorial of an integer number
-         @param num: the number
-         @return logarithm of (num! = 1*2*...*num)
-  */
+/**
+        Compute the logarithm of the factorial of an integer number
+        @param num: the number
+        @return logarithm of (num! = 1*2*...*num)
+ */
 double logFac(const int num);
 
 /**
@@ -1960,7 +1970,7 @@ bool fileExists(string strFilename);
         @param str original string
         @return the number
  */
-int convert_int(const char* str) throw(string);
+int convert_int(const char *str) throw(string);
 
 /**
         convert string to int, with error checking
@@ -1968,21 +1978,21 @@ int convert_int(const char* str) throw(string);
         @param end_pos end position
         @return the number
  */
-int convert_int(const char* str, int& end_pos) throw(string);
+int convert_int(const char *str, int &end_pos) throw(string);
 
 /**
         convert comma-separated string to integer vector, with error checking
         @param str original string with integers separated by comma
         @param vec (OUT) integer vector
  */
-void convert_int_vec(const char* str, IntVector& vec) throw(string);
+void convert_int_vec(const char *str, IntVector &vec) throw(string);
 
 /**
         convert string to double, with error checking
         @param str original string
         @return the double
  */
-double convert_double(const char* str) throw(string);
+double convert_double(const char *str) throw(string);
 
 /**
         convert string to double, with error checking
@@ -1990,7 +2000,7 @@ double convert_double(const char* str) throw(string);
         @param end_pos end position
         @return the double
  */
-double convert_double(const char* str, int& end_pos) throw(string);
+double convert_double(const char *str, int &end_pos) throw(string);
 
 /**
  * Convert seconds to hour, minute, second
@@ -2006,7 +2016,7 @@ string convert_time(const double sec);
         @param upper (OUT) upper bound of the range
         @param step_size (OUT) step size of the range
  */
-void convert_range(const char* str, int& lower, int& upper, int& step_size) throw(string);
+void convert_range(const char *str, int &lower, int &upper, int &step_size) throw(string);
 
 /**
         convert a string to to range lower:upper:step_size with error checking
@@ -2015,7 +2025,7 @@ void convert_range(const char* str, int& lower, int& upper, int& step_size) thro
         @param upper (OUT) upper bound of the range
         @param step_size (OUT) step size of the range
  */
-void convert_range(const char* str, double& lower, double& upper, double& step_size) throw(string);
+void convert_range(const char *str, double &lower, double &upper, double &step_size) throw(string);
 
 /**
         read the file containing branch/split scaling factor and taxa weights
@@ -2025,7 +2035,7 @@ void convert_range(const char* str, double& lower, double& upper, double& step_s
         @param tax_name (OUT) vector of taxa names
         @param tax_weight (OUT) vector of corresponding taxa weights
  */
-void readWeightFile(Params& params, int ntaxa, double& scale, StrVector& tax_name, DoubleVector& tax_weight);
+void readWeightFile(Params &params, int ntaxa, double &scale, StrVector &tax_name, DoubleVector &tax_weight);
 
 /**
         read the initial taxa set from the file
@@ -2033,7 +2043,7 @@ void readWeightFile(Params& params, int ntaxa, double& scale, StrVector& tax_nam
         @param ntaxa number of taxa
         @param tax_name (OUT) vector of taxa names
  */
-void readInitTaxaFile(Params& params, int ntaxa, StrVector& tax_name);
+void readInitTaxaFile(Params &params, int ntaxa, StrVector &tax_name);
 
 /**
         read the initial area set from the file
@@ -2041,7 +2051,7 @@ void readInitTaxaFile(Params& params, int ntaxa, StrVector& tax_name);
         @param nareas number of areas
         @param area_name (OUT) vector of area names
  */
-void readInitAreaFile(Params& params, int nareas, StrVector& area_name);
+void readInitAreaFile(Params &params, int nareas, StrVector &area_name);
 
 /**
         read a list of taxa set from a file, not in nexus format but as follows:
@@ -2059,7 +2069,7 @@ void readInitAreaFile(Params& params, int nareas, StrVector& area_name);
         @param filename file name
         @param sets (OUT) the returned sets of taxa
  */
-void readTaxaSets(char* filename, MSetsBlock* sets);
+void readTaxaSets(char *filename, MSetsBlock *sets);
 
 /**
         read areas shared boundary file, in form of a standard distance matrix
@@ -2068,7 +2078,7 @@ void readTaxaSets(char* filename, MSetsBlock* sets);
         @param areas_shared_boundary (OUT) shared boundary length between areas.
                 Diagonal elements represent the boundary length of single areas
  */
-void readAreasBoundary(char* file_name, MSetsBlock* areas, double* areas_shared_boundary);
+void readAreasBoundary(char *file_name, MSetsBlock *areas, double *areas_shared_boundary);
 
 /**
         parse program argument into params
@@ -2076,7 +2086,7 @@ void readAreasBoundary(char* file_name, MSetsBlock* areas, double* areas_shared_
         @param argv list of arguments
         @param params (OUT) program parameters
  */
-void parseArg(int argc, char* argv[], Params& params);
+void parseArg(int argc, char *argv[], Params &params);
 
 /**
         detect the format of input file
@@ -2088,21 +2098,21 @@ void parseArg(int argc, char* argv[], Params& params);
                 IN_PHYLIP if in phylip format,
                 IN_OTHER if file format unknown.
  */
-InputType detectInputFile(char* input_file);
+InputType detectInputFile(char *input_file);
 
 /**
         if file exists, ask user to overwrite it or not
         @param filename file name
         @return TRUE if agree to overwrite an existing file, or simply file does not exist
  */
-bool overwriteFile(char* filename);
+bool overwriteFile(char *filename);
 
 /**
         print usage information
         @param argv program arguments list
         @param full_command TRUE to print all available commands, FALSE to print normal usage dialog
  */
-void usage(char* argv[], bool full_command);
+void usage(char *argv[], bool full_command);
 
 /**
  *   Print a string into a file
@@ -2114,7 +2124,7 @@ void printString2File(string myString, string filename);
  * @param program arguments list
  * @param full_command TRUE to print all available commands, FALSE to print normal usage dialog
  */
-void usage_iqtree(char* argv[], bool full_command);
+void usage_iqtree(char *argv[], bool full_command);
 
 /**
  * Diep:
@@ -2122,14 +2132,14 @@ void usage_iqtree(char* argv[], bool full_command);
  * @param program arguments list
  * @param full_command TRUE to print all available commands, FALSE to print normal usage dialog
  */
-void usage_mpboot(char* argv[], bool full_command);
+void usage_mpboot(char *argv[], bool full_command);
 
 /**
         parse area name string, where names are separated by commas
         @param area_names a string of name
         @param areas (OUT) a set of name string
  */
-void parseAreaName(char* area_names, set<string>& areas);
+void parseAreaName(char *area_names, set<string> &areas);
 
 /**
  * generate 2 different random integer numbers smaller than a specific integer threshold
@@ -2137,7 +2147,7 @@ void parseAreaName(char* area_names, set<string>& areas);
  * @param &first first random integer number
  * @param @second second random integer number
  */
-void get2RandNumb(const int size, int& first, int& second);
+void get2RandNumb(const int size, int &first, int &second);
 
 /*
 inline double getCPUTime(clock_t startTime) {
@@ -2184,12 +2194,12 @@ int random_int(int n);
 /**
  *  return a random integer in the range [a,b]
  */
- // int randint(int a, int b);
+// int randint(int a, int b);
 
- /**
-  * returns a random integer in the range [0; RAND_MAX - 1]
-  * = random_int(RAND_MAX)
-  */
+/**
+ * returns a random integer in the range [0; RAND_MAX - 1]
+ * = random_int(RAND_MAX)
+ */
 int random_int();
 
 /**
@@ -2211,7 +2221,7 @@ void my_random_shuffle(T first, T last)
  * generic function for sorting by index
  */
 template <class T>
-void quicksort_index(T* arr, int* index, int left, int right)
+void quicksort_index(T *arr, int *index, int left, int right)
 {
         int i = left, j = right, tmp2;
         T tmp, pivot = arr[(left + right) / 2];
@@ -2250,11 +2260,11 @@ void quicksort_index(T* arr, int* index, int left, int right)
  * @param index (OUT) ordered index of elements from smallest to largest
  */
 template <class T>
-void sort_index(T* first, T* last, int* index)
+void sort_index(T *first, T *last, int *index)
 {
-        T* x;
+        T *x;
         int i;
-        T* arr = new T[last - first];
+        T *arr = new T[last - first];
         for (x = first, i = 0; x != last; x++, i++)
         {
                 index[i] = i;
@@ -2268,11 +2278,11 @@ void sort_index(T* first, T* last, int* index)
 /**
  * print the header of summary file
  */
-void summarizeHeader(ostream& out, Params& params, bool budget_constraint, InputType analysis_type);
+void summarizeHeader(ostream &out, Params &params, bool budget_constraint, InputType analysis_type);
 
 /**
  * print footer of summary file
  */
-void summarizeFooter(ostream& out, Params& params);
+void summarizeFooter(ostream &out, Params &params);
 
 #endif

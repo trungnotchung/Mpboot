@@ -283,6 +283,12 @@ endif()
 ##################################################################
 # Setup compiler flags
 ##################################################################
+set(LIBZIP_INCLUDE_DIRS "/usr/local/homebrew/Cellar/libzip/1.10.1/include")
+set(LIBZIP_LIBRARIES "/usr/local/homebrew/Cellar/libzip/1.10.1/lib")
+
+include_directories(${LIBZIP_INCLUDE_DIRS})
+link_directories(${LIBZIP_LIBRARIES})
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMBINED_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMBINED_FLAGS}")
 
@@ -431,7 +437,7 @@ if (IQTREE_FLAGS MATCHES "omp")
 	endif()
 endif()
 
-target_link_libraries(mpboot pll ncl whtest zlibstatic sprng vectorclass model ${PLATFORM_LIB} ${THREAD_LIB})	
+target_link_libraries(mpboot pll ncl whtest zlibstatic sprng vectorclass model zip ${PLATFORM_LIB} ${THREAD_LIB})	
 
 ##################################################################
 # setup the executable name 

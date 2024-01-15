@@ -474,6 +474,50 @@ void MTree::printTaxa(ostream &out, NodeVector &subtree) {
         }
 }
 
+void MTree::readTree(const char *zipFileName, const char *infile, bool &is_rooted) {
+    int err;
+    zip *archive = zip_open(zipFileName, 0, &err);
+    if (!archive) {
+        std::cerr << "Can't open zip file: " << zip_strerror(archive) << std::endl;
+        return;
+    }
+
+    int fileIndex = zip_name_locate(archive, infile, 0);
+    if (fileIndex < 0) {
+        std::cerr << "Can't read file in zip: " << zip_strerror(archive) << std::endl;
+        zip_close(archive);
+        return;
+    }
+
+    struct zip_stat stat;
+    zip_stat_init(&stat);
+    zip_stat_index(archive, fileIndex, 0, &stat);
+
+    zip_file *file = zip_fopen_index(archive, fileIndex, 0);
+
+    if (file) {
+        std::ofstream outputStream("treeFile.txt", std::ios::binary);
+        if (outputStream.is_open()) {
+            char buffer[1024];
+            zip_int64_t bytesRead;
+            while ((bytesRead = zip_fread(file, buffer, sizeof(buffer))) > 0) {
+                outputStream.write(buffer, bytesRead);
+            }
+
+            outputStream.close();
+        } else {
+            std::cerr << "Can't open output file" << std::endl;
+        }
+    } else {
+        std::cerr << "Không thể mở file trong zip: " << zip_strerror(archive) << std::endl;
+    }
+
+    zip_close(archive);
+
+    readTree("treeFile.txt", is_rooted);
+    std::remove("treeFile.txt");
+}
+
 void MTree::readTree(const char *infile, bool &is_rooted) {
     ifstream in;
     try {
