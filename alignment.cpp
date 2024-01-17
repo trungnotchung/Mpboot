@@ -1631,7 +1631,6 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
     int seq_id = 0;
     string line;
     in.exceptions(ios::badbit);
-    vector<string> missingSamplesNames;
 
     for (; !in.eof();) {
         getline(in, line);

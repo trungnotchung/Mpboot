@@ -461,7 +461,7 @@ void addMoreRowMutation(Params &params)
 	for (int i = 0; i < (int)tree->aln->missingSamples.size(); ++i)
 	{
 		missingSamples[i].mutations = tree->aln->missingSamples[i];
-		missingSamples[i].name = tree->aln->missingSamples[i][0].name;
+		missingSamples[i].name = tree->aln->missingSamplesNames[i];
 	}
 
 	int numSample = min((int)missingSamples.size(), params.numAddRow);
