@@ -671,7 +671,6 @@ void IQTree::initializePLL(Params &params)
 
     pllAlignment = pllParsePHYLIPString(pllAlnStr.c_str(), pllAlnStr.length());
     // cout << pllAlnStr.c_str() << "\n";
-
     // convertBackToDigits(pllAlnStr);
     // cout << pllAlnStr.c_str() << "\n";
 
@@ -680,20 +679,17 @@ void IQTree::initializePLL(Params &params)
     stringstream pllPartitionFileHandle;
     createPLLPartition(params, pllPartitionFileHandle);
     pllQueue *partitionInfo = pllPartitionParseString(pllPartitionFileHandle.str().c_str());
-
     // printf("WHAT'S GOING ON WHEN WE INITIALIZE PLL ???\n");
     /* Validate the partitions */
     if (!pllPartitionsValidate(partitionInfo, pllAlignment))
     {
         outError("pllPartitionsValidate");
     }
-
     /* Commit the partitions and build a partitions structure */
     pllPartitions = pllPartitionsCommit(partitionInfo, pllAlignment);
-
     /* We don't need the the intermediate partition queue structure anymore */
     pllQueuePartitionsDestroy(&partitionInfo);
-
+    
     // Diep: 	Added this IF statement so that UFBoot-MP SPR code doesn't affect other IQTree mode
     // 			alignment in  UFBoot-MP SPR branch will be sorted by pattern and site pars score
     // PLL eliminates duplicate sites from the alignment and update weights vector

@@ -559,10 +559,8 @@ Alignment::Alignment(char* filename, char* sequence_type, InputType& intype, int
     {
         outError(str);
     }
-
     if (getNSeq() < 3)
         outError("Alignment must have at least 3 sequences");
-
     cout << "Alignment has " << getNSeq() << " sequences with " << getNSite() << " columns and " << getNPattern() << " patterns" << endl;
     buildSeqStates();
     checkSeqName();
@@ -1513,7 +1511,6 @@ int Alignment::buildPattern(StrVector& sequences, char* sequence_type, int nseq,
     site_pattern.resize(nsite / step, -1);
     clear();
     pattern_index.clear();
-
     for (site = 0; site < nsite; site += step)
     {
         for (seq = 0; seq < nseq; seq++)
@@ -1631,6 +1628,7 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
     int seq_id = 0;
     string line;
     in.exceptions(ios::badbit);
+    int curPosition = 0;
 
     for (; !in.eof();) {
         getline(in, line);
@@ -1642,7 +1640,7 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
             // Sample names start from the 10th word in the header
             for (int j = 9; j < words.size(); j++) {
                 if (j - 9 >= numStartRow) {
-                    missingSamplesNames.push_back(words[j]);
+                    remainName.push_back(words[j]);
                 }
                 else {
                     seq_names.push_back(words[j]);
@@ -1650,20 +1648,20 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
                 }
             }
             sequences.resize(nseq, "");
-            missingSamples.resize(missingSamplesNames.size());
+            missingSamples.resize(remainName.size());
             existingSamples.resize(nseq);
-            remainSeq.resize(missingSamplesNames.size());
+            remainSeq.resize(remainName.size());
         }
         else {
             if (words.size() != 9 + nseq + missingSamples.size())
                 throw "Number of columns in VCF file is not consistent";
             vector<string> alleles;
-            Mutation cur_mut, ref_mut;
+            Mutation cur_mut;
             int variant_pos = std::stoi(words[1]); cur_mut.position = variant_pos;
+            cur_mut.compressed_position = curPosition;
             while((int)reference_nuc.size() <= cur_mut.position)
                 reference_nuc.push_back(0);
             split(words[4], alleles, ",");
-            cur_mut.ref_name = words[0];
             cur_mut.ref_nuc = getMutationFromState(words[3][0]);
             if(reference_nuc[cur_mut.position] == 0)
                 reference_nuc[cur_mut.position] = cur_mut.ref_nuc;
@@ -1702,19 +1700,18 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
                 }
 
                 if (j - 9 >= numStartRow) {
-                    cur_mut.name = missingSamplesNames[j - 9 - numStartRow];
                     if (cur_mut.mut_nuc != cur_mut.ref_nuc)
                     {
                         cur_mut.par_nuc = cur_mut.ref_nuc;
                         missingSamples[j - 9 - numStartRow].push_back(cur_mut);
                     }
                 } else {
-                    cur_mut.name = seq_names[j - 9];
                     // assert(cur_mut.ref_nuc > 0);
                     existingSamples[j - 9].push_back(cur_mut);
                 }
             }
             ++nsite;
+            ++curPosition;
         }
     }
     for(int i = 0; i < (int)missingSamples.size(); ++i)
@@ -1742,7 +1739,6 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
     // set the failbit again
     in.exceptions(ios::failbit | ios::badbit);
     in.close();
-
     return buildPattern(sequences, sequence_type, nseq, nsite);;
 }
 

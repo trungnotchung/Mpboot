@@ -619,7 +619,6 @@ public:
 
         int readVCF(char* filename, char* sequence_type, int numStartRow);
 
-        vector<string> missingSamplesNames;
         vector<vector<Mutation>> missingSamples;
         vector<vector<Mutation>> existingSamples;
         vector<int> reference_nuc;

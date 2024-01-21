@@ -302,12 +302,12 @@ public:
         UINT *save_branch_states_dad;
         vector<Mutation> root_mutations;
         // init mutation for calculate
-        void initMutation(vector<int> &permCol);
+        void initMutation(vector<int> &permCol, vector<int> &compressedPermCol);
 
         // compute mutation for a branch
-        void computeMutationBranch(vector<int> &permCol, PhyloNeighbor *dad_branch, PhyloNode *dad, int *branch_subst = NULL);
+        void computeMutationBranch(vector<int> &permCol, vector<int> &compressedPermCol, PhyloNeighbor *dad_branch, PhyloNode *dad, int *branch_subst = NULL);
 
-        void computePartialMutation(UINT *states_dad, vector<int> &permCol, PhyloNeighbor *dad_branch, PhyloNode *dad);
+        void computePartialMutation(UINT *states_dad, vector<int> &permCol, vector<int> &compressedPermCol, PhyloNeighbor *dad_branch, PhyloNode *dad);
 
         // compute parsimony score using mutation
         int computeParsimonyScoreMutation();

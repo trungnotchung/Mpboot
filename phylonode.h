@@ -249,7 +249,6 @@ class CandidateNode
         bool* has_unique;
 
         std::vector<Mutation>* excess_mutations;
-        std::vector<Mutation>* imputed_mutations;
 
         CandidateNode() {
             

@@ -147,17 +147,18 @@ pllInitAlignmentData (int sequenceCount, int sequenceLength)
       alignmentData->sequenceData[i]                 = (unsigned char *) (&mem[(i - 1) * (sequenceLength + 1) * sizeof (unsigned char)]);
       alignmentData->sequenceData[i][sequenceLength] = 0;
     }
+
    alignmentData->sequenceData[0] = NULL;
     
    alignmentData->sequenceLabels = (char **) rax_calloc ((sequenceCount + 1), sizeof (char *));
-
+  
    alignmentData->sequenceCount  = sequenceCount;
    alignmentData->sequenceLength = sequenceLength;
    alignmentData->originalSeqLength = sequenceLength;
-
+  
    /** TODO: remove siteWeights from alignment */
    alignmentData->siteWeights    = NULL;
-
+  
    return (alignmentData);
  }
 
@@ -490,7 +491,6 @@ pllParsePHYLIPString (const char *rawdata, long filesize)
 
   init_lexan (rawdata, filesize);
   input = get_next_symbol();
-
   /* parse the header to obtain the number of taxa and sequence length */
   if (!read_phylip_header (&input, &sequenceCount, &sequenceLength))
    {
@@ -499,12 +499,10 @@ pllParsePHYLIPString (const char *rawdata, long filesize)
      errno = PLL_ERROR_PHYLIP_HEADER_SYNTAX;
      return (NULL);
    }
-
   lex_table_amend_phylip();
 
   /* allocate alignment structure */
   alignmentData = pllInitAlignmentData (sequenceCount, sequenceLength);
-
   if (! parse_phylip (alignmentData, input))
    {
      errno = PLL_ERROR_PHYLIP_BODY_SYNTAX;
@@ -520,7 +518,6 @@ pllParsePHYLIPString (const char *rawdata, long filesize)
   alignmentData->siteWeights  = (int *) rax_malloc (alignmentData->sequenceLength * sizeof (int));
   for (i = 0; i < alignmentData->sequenceLength; ++ i)
     alignmentData->siteWeights[i] = 1;
-
   return (alignmentData);
 }
 

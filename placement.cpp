@@ -388,6 +388,7 @@ void addMoreRowMutation(Params &params)
 		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
 	}
 	alignment->checkGappySeq();
+	// cout << "Number of sequences: " << alignment->size() << '\n';
 
 	if (params.pporigspr)
 	{
@@ -424,18 +425,27 @@ void addMoreRowMutation(Params &params)
 	cout << "Tree parsimony before add k rows: " << tree->computeParsimony() << '\n';
 	vector<int> permCol = tree->aln->findPermCol();
 	vector<int> savePermCol = permCol;
+	vector<int> compressedPerCol = permCol;
 	vector<int> pos;
 
+	int sz = 0;
 	if (tree->aln->existingSamples.size())
 	{
-		for (auto &m : permCol)
-			m = tree->aln->existingSamples[0][m].position;
+		for(int j = 0; j < permCol.size(); ++j) {
+			int p = permCol[j];
+			compressedPerCol[j] = tree->aln->existingSamples[0][p].compressed_position;
+			permCol[j] = tree->aln->existingSamples[0][p].position;
+		}
+		for(int j = 0; j < tree->aln->existingSamples[0].size(); ++j) {
+			sz = max(sz, tree->aln->existingSamples[0][j].compressed_position);
+		}
 	}
 	else
 	{
 		for (auto &m : permCol)
 			m++;
 	}
+	cout << '\n';
 
 	for (int i = 0; i < (int)permCol.size(); ++i)
 	{
@@ -444,15 +454,16 @@ void addMoreRowMutation(Params &params)
 		pos[permCol[i]] = i;
 	}
 
-	int sz = 0;
-	for (int m : permCol)
-		sz = max(sz, m);
 	tree->cur_missing_sample_mutations.resize(sz + 1);
 	tree->cur_ancestral_mutations.resize(sz + 1);
 	tree->visited_missing_sample_mutations.resize(sz + 1);
 	tree->visited_ancestral_mutations.resize(sz + 1);
 
-	tree->initMutation(permCol);
+	tree->initMutation(permCol, compressedPerCol);
+	
+	// free memory
+	delete[] tree->save_branch_states_dad;
+	tree->add_row = false;
 
 	cout << "Tree parsimony after init mutations: " << tree->computeParsimony() << " " << tree->computeParsimonyScoreMutation() << '\n';
 	// tree->checkMutation(pos);
@@ -461,9 +472,8 @@ void addMoreRowMutation(Params &params)
 	for (int i = 0; i < (int)tree->aln->missingSamples.size(); ++i)
 	{
 		missingSamples[i].mutations = tree->aln->missingSamples[i];
-		missingSamples[i].name = tree->aln->missingSamplesNames[i];
+		missingSamples[i].name = tree->aln->remainName[i];
 	}
-
 	int numSample = min((int)missingSamples.size(), params.numAddRow);
 	for (int i = 0; i < numSample; ++i)
 	{
@@ -483,7 +493,6 @@ void addMoreRowMutation(Params &params)
 		// sampled in order to place the sample at each node of the
 		// tree in DFS order. Again, guaranteed to be corrrect only
 		// for pasrimony-optimal nodes
-		std::vector<std::vector<Mutation>> node_imputed_mutations(total_nodes);
 
 		bool best_node_has_unique = false;
 
@@ -501,7 +510,6 @@ void addMoreRowMutation(Params &params)
 			inp.node_branch = bfs[j].second;
 			inp.missing_sample_mutations = &missingSamples[i].mutations;
 			inp.excess_mutations = &node_excess_mutations[j];
-			inp.imputed_mutations = &node_imputed_mutations[j];
 			inp.best_node_num_leaves = &best_node_num_leaves;
 			inp.best_set_difference = &best_set_difference;
 			inp.set_difference = &set_difference;
@@ -515,12 +523,18 @@ void addMoreRowMutation(Params &params)
 		}
 
 		tree->addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
+		// cout << "Tree parsimony after add sample " << i << ": " << tree->computeParsimonyScoreMutation() << '\n';
 		// tree->aln->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
 		// tree->checkMutation(pos);
 		// cout << tree->computeParsimonyScoreMutation() << " " << tree->computeParsimonyScore() << '\n';
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
 	cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
+	
+	tree->cur_missing_sample_mutations.clear();
+	tree->cur_ancestral_mutations.clear();
+	tree->visited_missing_sample_mutations.clear();
+	tree->visited_ancestral_mutations.clear();
 
 	ofstream fout("addedTree.txt");
 	tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
@@ -536,7 +550,6 @@ void addMoreRowMutation(Params &params)
 	params.numStartRow = tree->aln->size();
 
 	ppRunOriginalSpr(tree->aln, params, treeAfterPhase1);
-
 	delete tree->aln;
 	tree->aln = NULL;
 	delete tree;

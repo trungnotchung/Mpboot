@@ -1045,14 +1045,12 @@ pllPartitionsValidate (pllQueue * parts, pllAlignmentData * alignmentData)
   nparts = pllQueueSize (parts);
   if (!nparts)          
     return (0);   
-
   /* pllBoolean array for marking that a site was assigned a partition */
   used = (char *) rax_calloc (alignmentData->sequenceLength, sizeof (char));
   /* traverse all partitions and their respective regions and mark sites */
   for (elm = parts->head; elm; elm = elm->next)
    {
      pi = (pllPartitionInfo *) elm->item;
-     
      for (regionItem = pi->regionList->head; regionItem; regionItem = regionItem->next)
       {
         region = (pllPartitionRegion *) regionItem->item;
@@ -1074,7 +1072,6 @@ pllPartitionsValidate (pllQueue * parts, pllAlignmentData * alignmentData)
          }
       }
    }
-
   /* check whether all sites were assigned a partition */
   for (i = 0; i < alignmentData->sequenceLength; ++ i)
     if (used[i] != 1)

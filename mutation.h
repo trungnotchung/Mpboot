@@ -21,8 +21,8 @@ char get_nuc(int8_t nuc_id);
 
 struct Mutation
 {
-    std::string name, ref_name;
     int position;
+    int compressed_position;
     int ref_nuc;
     int par_nuc;
     int mut_nuc;
@@ -34,17 +34,16 @@ struct Mutation
     inline Mutation copy() const
     {
         Mutation m;
-        m.name = name;
         m.position = position;
         m.ref_nuc = ref_nuc;
         m.par_nuc = par_nuc;
         m.mut_nuc = mut_nuc;
         m.is_missing = is_missing;
+        m.compressed_position = compressed_position;
         return m;
     }
     Mutation()
     {
-        name = "";
         is_missing = false;
     }
     inline bool is_masked() const
