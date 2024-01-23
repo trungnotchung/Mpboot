@@ -358,12 +358,12 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 	// cout << "wtfdone\n";
 
 	// fout.open("tree.txt");
-	// double start_time = getCPUTime();
+	double start_time = getCPUTime();
 	string newTreeString = tree->ppRunOriginalSpr();
 	ofstream fout2("tree2.txt");
 	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
-	// double end_time = getCPUTime();
-	// cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	double end_time = getCPUTime();
+	cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
 	// fout.close();
 
 	if (params.pp_test_spr)
