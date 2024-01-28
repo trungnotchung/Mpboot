@@ -3658,3 +3658,47 @@ void Alignment::addToAlignmentNewSeq(const string& newName, const string& newSeq
     // checkSeqName();
     countConstSite();
 }
+
+void Alignment::addToAlignmentNewSeq(const vector<string>& newName, const vector<string>& newSeq, const vector<int>& permCol)
+{
+    char char_to_state[NUM_CHAR];
+    computeUnknownState();
+    buildStateMap(char_to_state, seq_type);
+    vector<Pattern> newVectorPattern;
+    vector<int> newSitePattern;
+    PatternIntMap newPatternIdx;
+    int nSeqSize = newSeq.size();
+    for (int i = 0; i < getNSite(); ++i)
+    {
+        Pattern newPat = getPattern(i);
+        for(int j = 0; j < nSeqSize; ++j) {
+            newPat.push_back(char_to_state[(int)newSeq[j][permCol[i]]]);
+        }
+        PatternIntMap::iterator pat_it = newPatternIdx.find(newPat);
+        if (pat_it == newPatternIdx.end())
+        { // not found
+            newPat.frequency = 1;
+            newPat.computeConst(STATE_UNKNOWN);
+            newVectorPattern.push_back(newPat);
+            newPatternIdx[newPat] = newVectorPattern.size() - 1;
+            newSitePattern.push_back(newVectorPattern.size() - 1);
+        }
+        else
+        {
+            int index = pat_it->second;
+            newVectorPattern[index].frequency++;
+            newSitePattern.push_back(index);
+        }
+    }
+    clear();
+    for (vector<Pattern>::iterator it = newVectorPattern.begin(); it != newVectorPattern.end(); ++it)
+    {
+        push_back(*it);
+    }
+    pattern_index = newPatternIdx;
+    site_pattern = newSitePattern;
+    seq_names.insert(seq_names.end(), newName.begin(), newName.end());
+    buildSeqStates();
+    // checkSeqName();
+    countConstSite();
+}

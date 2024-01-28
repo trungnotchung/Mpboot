@@ -2526,10 +2526,10 @@ string IQTree::ppRunOriginalSpr()
     pllNewickParseDestroy(&btree);
 
     assert(pllInst != NULL && pllPartitions != NULL);
-    printf("spr start\n");
-    printf("spr radius: %d %d\n", params->spr_mintrav, params->spr_maxtrav);
+    printf("Spr start...\n");
+    printf("Spr radius: %d %d\n", params->spr_mintrav, params->spr_maxtrav);
     const int scoreAfterRunSpr = myPllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
-    printf("score after running spr: %d\n", scoreAfterRunSpr);
+    printf("Score after running spr: %d\n", scoreAfterRunSpr);
 
     pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_FALSE,
                     PLL_TRUE, 0, 0, 0, PLL_SUMMARIZE_LH, 0, 0);

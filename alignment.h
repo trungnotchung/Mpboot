@@ -611,6 +611,8 @@ public:
 
         void addToAlignmentNewSeq(const string& newName, const string& newSeq, const vector<int>& permCol);
 
+        void addToAlignmentNewSeq(const vector<string>& newNames, const vector<string>& newSeqs, const vector<int>& permCol);
+
         int getMutationFromState(char state);
 
         int getStateFromMutation(int nuc);

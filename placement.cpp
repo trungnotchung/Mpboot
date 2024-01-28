@@ -327,6 +327,7 @@ void configLeafNames(IQTree *tree, Node *node, Node *dad)
 
 void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = "")
 {
+	cout << "\n========== Start spr core ==========\n";
 	IQTree *tree = new IQTree(alignment);
 	tree->params = &params;
 	if (newickTree == "")
@@ -348,23 +349,14 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 	tree->initializeAllPartialPars();
 	tree->clearAllPartialLH();
 	tree->curScore = tree->computeParsimony();
-	cout << "tree's score before running spr: " << tree->curScore << '\n';
+	cout << "Tree's score before running spr: " << tree->curScore << '\n';
 
-	// // print score of tree before running SPR
-	// ofstream fout("score.txt");
-	// // fout << tree->curScore;
-	// fout.close();
-
-	// cout << "wtfdone\n";
-
-	// fout.open("tree.txt");
 	double start_time = getCPUTime();
 	string newTreeString = tree->ppRunOriginalSpr();
 	ofstream fout2("tree2.txt");
 	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
 	double end_time = getCPUTime();
 	cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
-	// fout.close();
 
 	if (params.pp_test_spr)
 	{
@@ -543,10 +535,7 @@ void addMoreRowMutation(Params &params)
 	tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
 	string treeAfterPhase1 = ss.str();
 
-	for (int i = 0; i < numSample; ++i)
-	{
-		tree->aln->addToAlignmentNewSeq(missingSamples[i].name, tree->aln->remainSeq[i], savePermCol);
-	}
+	tree->aln->addToAlignmentNewSeq(tree->aln->remainName, tree->aln->remainSeq, savePermCol);
 	params.numStartRow = tree->aln->size();
 
 	ppRunOriginalSpr(tree->aln, params, treeAfterPhase1);
