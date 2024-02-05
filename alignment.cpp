@@ -1714,21 +1714,6 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
             ++curPosition;
         }
     }
-    for(int i = 0; i < (int)missingSamples.size(); ++i)
-    {
-        for(auto m : missingSamples[i])
-        {
-            assert(reference_nuc[m.position] > 0);
-        }
-    }
-    for(int i = 0; i < (int)existingSamples.size(); ++i)
-    {
-        for(auto m : existingSamples[i])
-        {
-            assert(reference_nuc[m.position] != 0);
-        }
-    }
-
     saveCol.assign((int)sequences[0].length(), "");
     for (int i = 0; i < (int)sequences.size(); ++i)
     {

@@ -90,7 +90,8 @@ void PhyloTree::init() {
     nodeBranchDists = NULL;
     save_all_trees = NULL;
     add_row = false;
-    curTime = 0;
+    timerRegular = 0;
+    timerOptimized = 0;
 }
 
 PhyloTree::PhyloTree(Alignment* aln) : MTree() {
@@ -5179,6 +5180,7 @@ void PhyloTree::computePartialMutation(UINT* states_dad, vector<int>& permCol, v
     if (nstates == 4 && aln->seq_type == SEQ_DNA && (node->isLeaf() || node->degree() == 3)) {
         // ULTRAFAST VERSION FOR DNA, assuming that UINT is 32-bit integer
         if (node->isLeaf() && dad) {
+            return;
         }
         else {
             // internal node
@@ -5289,13 +5291,13 @@ void PhyloTree::computeMutationBranch(vector<int>& permCol, vector<int> &compres
     UINT* lf = new UINT[(aln->size() + 7) / 8 + 1];
     for (int ptn = 0; ptn < aln->size(); ptn += 8)
     {
-        lf[ptn / 8] = dad_branch->partial_pars[ptn / 8];
+        lf[ptn / 8] = 0;
     }
     
     UINT* rg = new UINT[(aln->size() + 7) / 8 + 1];
     for (int ptn = 0; ptn < aln->size(); ptn += 8)
     {
-        rg[ptn / 8] = node_branch->partial_pars[ptn / 8];
+        rg[ptn / 8] = 0;
     }
 
     int i, ptn, p = -1, tree_pars = 0;
@@ -5331,14 +5333,7 @@ void PhyloTree::computeMutationBranch(vector<int>& permCol, vector<int> &compres
                     mut_l.ref_nuc = aln->reference_nuc[mut_l.position];
                     dad_branch->mutations.push_back(mut_l);
                 }
-                int pos = i * 4;
-                for(int j = 0; j < 4; ++j)
-                {
-                    if(j != c1 && (rg[ptn/8] >> (pos + j) & 1))
-                    {
-                        rg[ptn/8] ^= (1 << (pos + j));
-                    }
-                }
+                rg[ptn/8] ^= (1 << (i * 4 + c1));
 
                 int c2;
                 if((1 & (state_right >> c)) == 1) {
@@ -5355,14 +5350,7 @@ void PhyloTree::computeMutationBranch(vector<int>& permCol, vector<int> &compres
                     mut_r.ref_nuc = aln->reference_nuc[mut_r.position];
                     node_branch->mutations.push_back(mut_r);
                 }
-                pos = i * 4;
-                for(int j = 0; j < 4; ++j)
-                {
-                    if(j != c2 && (lf[ptn/8] >> (pos + j) & 1))
-                    {
-                        lf[ptn/8] ^= (1 << (pos + j));
-                    }
-                }
+                lf[ptn/8] ^= (1 << (i * 4 + c2));
             }
         }
     }
@@ -5388,10 +5376,9 @@ void PhyloTree::initMutation(vector<int>& permCol, vector<int> &compressedPermCo
     computeMutationBranch(permCol, compressedPermCol, (PhyloNeighbor*)root->neighbors[0], (PhyloNode*)root);
 
     root_mutations.clear();
+    int ptn = 0, pos = 0;
     for(int i = 0; i < aln->size(); ++i)
     {
-        int ptn = i / 8;
-        int pos = i % 8;
         int nuc = ((save_branch_states_dad[ptn] >> (i * 4)) & 15);
         int ref = aln->reference_nuc[permCol[i]];
         if((nuc & ref) == 0)
@@ -5411,10 +5398,15 @@ void PhyloTree::initMutation(vector<int>& permCol, vector<int> &compressedPermCo
             Mutation m;
             m.position = permCol[i];
             m.compressed_position = compressedPermCol[i];
-            m.mut_nuc = (1<<c2);
+            m.mut_nuc = (1 << c2);
             m.ref_nuc = ref;
-            m.par_nuc = (1<<c1);
+            m.par_nuc = (1 << c1);
             root_mutations.push_back(m);
+        }
+        ++pos;
+        if(pos == 8) {
+            pos = 0;
+            ++ptn;
         }
     }
 }
@@ -5597,10 +5589,10 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
     int num_common_mut = 0;
     assert(input.node->dad);
 
-    ++curTime;
+    timerRegular--;
     for(auto m : (*input.missing_sample_mutations))
     {
-        visited_missing_sample_mutations[m.compressed_position] = curTime;
+        visited_missing_sample_mutations[m.compressed_position] = timerRegular;
         cur_missing_sample_mutations[m.compressed_position] = m;
     }
 
@@ -5620,7 +5612,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             assert(((anc_nuc - 1) & anc_nuc) == 0);
             bool found = false;
             bool found_pos = false;
-            if(visited_missing_sample_mutations[m1.compressed_position] == curTime) {
+            if(visited_missing_sample_mutations[m1.compressed_position] == timerRegular) {
                 auto m2 = cur_missing_sample_mutations[m1.compressed_position];
                 if (m1.position == m2.position) {
                     found_pos = true;
@@ -5685,7 +5677,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
 
     for(auto m : ancestral_mutations)
     {
-        visited_ancestral_mutations[m.compressed_position] = curTime;
+        visited_ancestral_mutations[m.compressed_position] = timerRegular;
         cur_ancestral_mutations[m.compressed_position] = m;
     }
 
@@ -5698,19 +5690,19 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             n = n->dad;
             PhyloNeighbor* node_branch = (PhyloNeighbor*)n->findNeighbor(n->dad);
             for (auto m : node_branch->mutations) {
-                if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != curTime) {
+                if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != timerRegular) {
                     ancestral_mutations.emplace_back(m);
                     anc_positions.emplace_back(m.compressed_position);
-                    visited_ancestral_mutations[m.compressed_position] = curTime;
+                    visited_ancestral_mutations[m.compressed_position] = timerRegular;
                     cur_ancestral_mutations[m.compressed_position] = m;
                 }
             }
         }
         for (auto m : root_mutations) {
-            if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != curTime) {
+            if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != timerRegular) {
                 ancestral_mutations.emplace_back(m);
                 anc_positions.emplace_back(m.compressed_position);
-                visited_ancestral_mutations[m.compressed_position] = curTime;
+                visited_ancestral_mutations[m.compressed_position] = timerRegular;
                 cur_ancestral_mutations[m.compressed_position] = m;
             }
         }
@@ -5730,7 +5722,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             has_ref = true;
         }
         // Check if mutation is found in ancestral_mutations
-        if(visited_ancestral_mutations[m1.compressed_position] == curTime) {
+        if(visited_ancestral_mutations[m1.compressed_position] == timerRegular) {
             auto m2 = cur_ancestral_mutations[m1.compressed_position];
             // Masked mutations don't match anything
             if (!m2.is_masked()) {
@@ -5742,12 +5734,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             }
         }
         if (found) {
-            // If mutation is found in ancestral_mutations
-            // and if the missing sample base was ambiguous,
-            // add it to imputed_mutations
-            if (compute_vecs && ((m1.mut_nuc & (m1.mut_nuc - 1)) != 0)) {
-                
-            }
+           
         }
         // If neither the same mutation nor another mutation at the same
         // position is found in ancestor but if the missing sample can carry
@@ -5762,6 +5749,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
         // best. Otherwise add the mutation to excess_mutations and to
         // imputed_mutations, if base was originally ambiguous
         else {
+            
             Mutation m;
             m.position = m1.position;
             m.compressed_position = m1.compressed_position;
@@ -5779,11 +5767,6 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
                 }
             }
             assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
-            // If the missing sample base is ambiguous, add it to
-            // imputed_mutations
-            if (compute_vecs && ((m1.mut_nuc & (m1.mut_nuc - 1)) != 0)) {
-                
-            }
             if (m.mut_nuc != m.par_nuc) {
                 if (compute_vecs) {
                     input.excess_mutations->emplace_back(m);
@@ -5795,6 +5778,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             }
         }
     }
+
     // For loop to add back-mutations for cases in which a mutation from the
     // root to the current node consists of a non-reference allele but no such
     // variant is found in the missing sample
@@ -5802,7 +5786,7 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
         bool found = false;
         bool found_pos = false;
         auto anc_nuc = m1.mut_nuc;
-        if(visited_missing_sample_mutations[m1.compressed_position] == curTime) {
+        if(visited_missing_sample_mutations[m1.compressed_position] == timerRegular) {
             // If ancestral mutation is masked, terminate the search for
             // identical mutation
             if (!m1.is_masked()) {
@@ -5890,6 +5874,297 @@ void PhyloTree::calculatePlacementMutation(CandidateNode& input, bool compute_pa
             *input.best_distance = input.distance;
         }
         (*input.node_has_unique)[input.j] = has_unique;
+    }
+}
+
+void PhyloTree::initDataCalculatePlacementMutation(CandidateNode &inp) {
+    ++timerOptimized;
+    for(auto m : (*inp.missing_sample_mutations)) {
+        visited_missing_sample_mutations[m.compressed_position] = timerOptimized;
+        cur_missing_sample_mutations[m.compressed_position] = m;
+    }
+}
+
+void PhyloTree::eraseMutation(vector<Mutation> &erased_excess_mutation, Mutation m, int &set_difference) {
+    if(visited_excess_mutations[m.compressed_position] == timerOptimized) {
+        erased_excess_mutation.emplace_back(cur_excess_mutations[m.compressed_position]);
+        visited_excess_mutations[m.compressed_position] = 0;
+        --set_difference;
+    }
+}
+
+void PhyloTree::addMutation(vector<Mutation> &added_excess_mutation, Mutation m, int diff, int &set_difference) {
+    added_excess_mutation.push_back(m);
+    visited_excess_mutations[m.compressed_position] = timerOptimized;
+    cur_excess_mutations[m.compressed_position] = m;
+    set_difference += diff;
+}
+
+void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode& input, int set_difference, bool firstNode)
+{
+    int num_common_mut = 0;
+    int best_set_difference = *input.best_set_difference;
+
+    std::vector<int> anc_positions;
+    std::vector<Mutation> ancestral_mutations;
+    std::vector<Mutation> erased_excess_mutation;
+    std::vector<Mutation> added_excess_mutation;
+    std::vector<Mutation> common_mutations;
+    std::vector<Mutation> diff_mutations;
+
+    bool has_unique = false;
+    int node_num_mut = 0;
+    assert(input.node->dad);
+
+    if (!(input.node == root)) {
+        for (auto m1 : input.node_branch->mutations) {
+            node_num_mut++;
+            auto anc_nuc = m1.mut_nuc;
+            if (m1.is_masked()) {
+                has_unique = true;
+                break;
+            }
+            assert(((anc_nuc - 1) & anc_nuc) == 0);
+            bool found = false;
+            bool found_pos = false;
+            if(visited_missing_sample_mutations[m1.compressed_position] == timerOptimized) {
+                auto m2 = cur_missing_sample_mutations[m1.compressed_position];
+                if (m1.position == m2.position) {
+                    found_pos = true;
+                    if (m2.is_missing) {
+                        ++num_common_mut;
+                        found = true;
+                    }
+                    else {
+                        auto nuc = m2.mut_nuc;
+                        if ((nuc & anc_nuc) != 0) {
+                            Mutation m;
+                            m.position = m1.position;
+                            m.compressed_position = m1.compressed_position;
+                            m.ref_nuc = m1.ref_nuc;
+                            m.par_nuc = m1.par_nuc;
+                            m.mut_nuc = anc_nuc;
+
+                            ancestral_mutations.emplace_back(m);
+                            anc_positions.emplace_back(m.compressed_position);
+                            assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
+
+                            found = true;
+                            eraseMutation(erased_excess_mutation, m, set_difference);
+                            addMutation(added_excess_mutation, m, 0, set_difference);
+                            common_mutations.emplace_back(m);
+                            ++num_common_mut;
+                        }
+                    }
+                }
+            }
+            if (!found) {
+                if (!found_pos && (anc_nuc == m1.ref_nuc)) { // m.mut_nuc = m.par_nuc = m1.ref_nuc
+                    Mutation m;
+                    m.position = m1.position;
+                    m.compressed_position = m1.compressed_position;
+                    m.ref_nuc = m1.ref_nuc;
+                    m.par_nuc = m1.par_nuc;
+                    m.mut_nuc = anc_nuc;
+                
+                    ancestral_mutations.emplace_back(m);
+                    anc_positions.emplace_back(m.compressed_position);
+                    assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
+                    eraseMutation(erased_excess_mutation, m, set_difference);
+                    addMutation(added_excess_mutation, m, 0, set_difference);
+                    common_mutations.emplace_back(m);
+                    ++num_common_mut;
+                }
+                else {
+                    has_unique = true;
+                    diff_mutations.emplace_back(m1);
+                }
+            }
+        }
+    }
+
+    for(auto m : ancestral_mutations)
+    {
+        visited_ancestral_mutations[m.compressed_position] = timerOptimized;
+        cur_ancestral_mutations[m.compressed_position] = m;
+    }
+
+    if(firstNode) {
+        {
+            PhyloNode* n = input.node;
+            while (n->dad != root) {
+                n = n->dad;
+                PhyloNeighbor* node_branch = (PhyloNeighbor*)n->findNeighbor(n->dad);
+                for (auto m : node_branch->mutations) {
+                    if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != timerOptimized) {
+                        ancestral_mutations.emplace_back(m);
+                        anc_positions.emplace_back(m.compressed_position);
+                        visited_ancestral_mutations[m.compressed_position] = timerOptimized;
+                        cur_ancestral_mutations[m.compressed_position] = m;
+                    }
+                }
+            }
+            for (auto m : root_mutations) {
+                if (!m.is_masked() && visited_ancestral_mutations[m.compressed_position] != timerOptimized) {
+                    ancestral_mutations.emplace_back(m);
+                    anc_positions.emplace_back(m.compressed_position);
+                    visited_ancestral_mutations[m.compressed_position] = timerOptimized;
+                    cur_ancestral_mutations[m.compressed_position] = m;
+                }
+            }
+        }
+
+        for (auto m1 : (*input.missing_sample_mutations)) {
+            // Missing bases (Ns) are ignored
+            if (m1.is_missing) {
+                continue;
+            }
+            bool found_pos = false;
+            bool found = false;
+            bool has_ref = false;
+            auto anc_nuc = m1.ref_nuc;
+            if ((m1.mut_nuc & m1.ref_nuc) != 0) {
+                has_ref = true;
+            }
+
+            if(visited_ancestral_mutations[m1.compressed_position] == timerOptimized) {
+                auto m2 = cur_ancestral_mutations[m1.compressed_position];
+                if (!m2.is_masked()) {
+                    found_pos = true;
+                    anc_nuc = m2.mut_nuc;
+                    if ((m1.mut_nuc & anc_nuc) != 0) {
+                        found = true;
+                    }
+                }
+            }
+            if (found) {
+    
+            } else if (!found_pos && has_ref) {
+            
+            } else if(found_pos && !found) {
+                
+            } else {
+                Mutation m;
+                m.position = m1.position;
+                m.compressed_position = m1.compressed_position;
+                m.ref_nuc = m1.ref_nuc;
+                m.par_nuc = anc_nuc;
+                if (has_ref) {
+                    m.mut_nuc = m1.ref_nuc;
+                }
+                else {
+                    for (int j = 0; j < 4; j++) {
+                        if (((1 << j) & m1.mut_nuc) != 0) {
+                            m.mut_nuc = (1 << j);
+                            break;
+                        }
+                    }
+                }
+                assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
+                if (m.mut_nuc != m.par_nuc) {
+                    addMutation(added_excess_mutation, m, 1, set_difference);
+                }
+            }
+        }
+    }
+
+    for (auto m1 : ancestral_mutations) {
+        bool found = false;
+        bool found_pos = false;
+        auto anc_nuc = m1.mut_nuc;
+        if(visited_missing_sample_mutations[m1.compressed_position] == timerOptimized) {
+            if (!m1.is_masked()) {
+                auto m2 = cur_missing_sample_mutations[m1.compressed_position];
+                found_pos = true;
+                if (m2.is_missing) {
+                    found = true;
+                }
+                else if ((m2.mut_nuc & anc_nuc) != 0) {
+                    found = true;
+                }
+            }
+        }
+        if (found) {
+            
+        }
+        else if (!found_pos && !m1.is_masked() && (anc_nuc == m1.ref_nuc)) {
+        
+        }
+        else {
+            eraseMutation(erased_excess_mutation, m1, set_difference);
+            Mutation m;
+            m.position = m1.position;
+            m.compressed_position = m1.compressed_position;
+            m.ref_nuc = m1.ref_nuc;
+            m.par_nuc = anc_nuc;
+            m.mut_nuc = m1.ref_nuc;
+            assert(m.is_masked() || ((m.mut_nuc & (m.mut_nuc - 1)) == 0));
+            if (m.mut_nuc != m.par_nuc) {
+                addMutation(added_excess_mutation, m, 1, set_difference);
+            }
+        }
+    }
+
+    size_t num_leaves = input.node_branch->num_leaves;
+    if (set_difference < *input.best_set_difference) {
+        *input.best_set_difference = set_difference;
+        *input.best_node_num_leaves = num_leaves;
+        *input.best_distance = input.distance;
+        input.best_node = input.node;
+        input.best_node_branch = input.node_branch;
+    }
+    else if (set_difference == *input.best_set_difference) {
+        if (((input.distance == *input.best_distance) &&
+            ((num_leaves > *input.best_node_num_leaves) ||
+                ((num_leaves == *input.best_node_num_leaves) && (*input.best_j < input.j))))
+            || (input.distance < *input.best_distance)) {
+            *input.best_set_difference = set_difference;
+            *input.best_node_num_leaves = num_leaves;
+            *input.best_distance = input.distance;
+            input.best_node = input.node;
+            input.best_node_branch = input.node_branch;
+        }
+    }
+
+    for(auto m : common_mutations) {
+        visited_excess_mutations[m.compressed_position] = 0;
+    }
+
+    for(auto m : diff_mutations) {
+        Mutation m1;
+        m1.ref_nuc = m.ref_nuc;
+        m1.par_nuc = m.mut_nuc;
+        m1.mut_nuc = m.ref_nuc;
+        m1.position = m.position;
+        m1.compressed_position = m.compressed_position;
+        if(visited_missing_sample_mutations[m.compressed_position] == timerOptimized) {
+            m1.mut_nuc = cur_missing_sample_mutations[m.compressed_position].mut_nuc;
+        }
+        eraseMutation(erased_excess_mutation, m1, set_difference);
+        if(m1.mut_nuc != m1.par_nuc) {
+            addMutation(added_excess_mutation, m1, 1, set_difference);
+        }
+    }
+
+    PhyloNode* node = input.node;
+    PhyloNode* dad = node->dad;
+    FOR_NEIGHBOR_IT(node, dad, it) {
+        PhyloNode* childNode = (PhyloNode*)(*it)->node;
+        PhyloNeighbor* childNodeBranch = (PhyloNeighbor*)childNode->findNeighbor(node);
+        input.node = childNode;
+        input.node_branch = childNodeBranch;
+        input.distance = childNodeBranch->distance;
+        optimizedCalculatePlacementMutation(input, set_difference, false);
+    }
+
+    for(auto m: added_excess_mutation) {
+        visited_excess_mutations[m.compressed_position] = 0;
+    }
+
+    for(int i = (int)erased_excess_mutation.size() - 1; i >= 0; --i) {
+        Mutation m = erased_excess_mutation[i];
+        visited_excess_mutations[m.compressed_position] = timerOptimized;
+        cur_excess_mutations[m.compressed_position] = m;
     }
 }
 
@@ -5991,6 +6266,7 @@ string PhyloTree::checkPartialMutation(vector<int>& pos, PhyloNeighbor* dad_bran
         if (node->isLeaf() && dad) {
             PhyloNeighbor* node_branch = (PhyloNeighbor*)node->findNeighbor(dad);
             string s = "";
+            if(node->id >= aln->getNSeq()) cout << node->id << " " << aln->getNSeq() << '\n';
             assert(node->id < aln->getNSeq());
             for (int i = 0; i < (int)aln->getNSite(); ++i)
             {
@@ -6213,7 +6489,7 @@ int PhyloTree::tryMatOptimize(int old_score, bool canRemove, PhyloNode *node, Ph
         PhyloNeighbor* sibling2_nei = (PhyloNeighbor*)sibling2->findNeighbor(sibling1);
 
         // Update mutations.
-        ++curTime;
+        ++timerRegular;
 
 
         FOR_NEIGHBOR(sibling1, sibling2, it)
