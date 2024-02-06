@@ -519,16 +519,12 @@ void addMoreRowMutation(Params &params)
 
 	// 		tree->calculatePlacementMutation(inp, false, true);
 	// 	}
-
 	// 	tree->addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
-	// 	// cout << "Tree parsimony after add sample " << i << ": " << tree->computeParsimonyScoreMutation() << '\n';
-	// 	// alignment->addToAlignmentNewSeq(missingSamples[i].name, alignment->remainSeq[i], savePermCol);
-	// 	// tree->checkMutation(pos);
-	// 	// cout << tree->computeParsimonyScoreMutation() << " " << tree->computeParsimonyScore() << '\n';
 	// }
 	for (int i = 0; i < numSample; ++i)
 	{
 		vector<pair<PhyloNode *, PhyloNeighbor *>> bfs = tree->breadth_first_expansion();
+
 		int total_nodes = (int)bfs.size();
 		CandidateNode inp;
 		int best_set_difference = INF;
@@ -566,6 +562,7 @@ void addMoreRowMutation(Params &params)
 		inp.node_branch = bfs[best_j].second;
 		inp.distance = bfs[best_j].second->distance;
 		tree->calculatePlacementMutation(inp, false, true);
+		// cout << bfs[best_j].second->distance << '\n';
 		tree->addNewSample(bfs[best_j].first, bfs[best_j].second, excess_mutations, i, missingSamples[i].name);
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
@@ -587,7 +584,7 @@ void addMoreRowMutation(Params &params)
 	string treeAfterPhase1 = ss.str();
 
 	alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
-	// tree->checkMutation(pos);
+	tree->checkMutation(pos);
 	params.numStartRow = alignment->size();
 
 	ppRunOriginalSpr(alignment, params, treeAfterPhase1);

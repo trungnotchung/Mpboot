@@ -5485,7 +5485,6 @@ vector<pair<PhyloNode*, PhyloNeighbor*> > PhyloTree::breadth_first_expansion()
     while (q.size())
     {
         PhyloNode* node = q.front().first;
-        // cout << node->name << '\n';
         PhyloNeighbor* node_branch = q.front().second;
         node->dad = (PhyloNode*)node_branch->node;
         for (auto mut : node_branch->mutations)
@@ -5983,12 +5982,6 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode& input, int se
         }
     }
 
-    for(auto m : ancestral_mutations)
-    {
-        visited_ancestral_mutations[m.compressed_position] = timerOptimized;
-        cur_ancestral_mutations[m.compressed_position] = m;
-    }
-
     if(firstNode) {
         {
             PhyloNode* n = input.node;
@@ -6115,8 +6108,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode& input, int se
     }
     else if (set_difference == *input.best_set_difference) {
         if (((input.distance == *input.best_distance) &&
-            ((num_leaves > *input.best_node_num_leaves) ||
-                ((num_leaves == *input.best_node_num_leaves) && (*input.best_j < input.j))))
+            ((num_leaves >= *input.best_node_num_leaves)))
             || (input.distance < *input.best_distance)) {
             *input.best_set_difference = set_difference;
             *input.best_node_num_leaves = num_leaves;
@@ -6145,6 +6137,8 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode& input, int se
             addMutation(added_excess_mutation, m1, 1, set_difference);
         }
     }
+    common_mutations.clear();
+    diff_mutations.clear();
 
     PhyloNode* node = input.node;
     PhyloNode* dad = node->dad;
