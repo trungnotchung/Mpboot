@@ -585,7 +585,8 @@ void addMoreRowMutation(Params &params)
 
 	alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
 	tree->checkMutation(pos);
-	params.numStartRow = alignment->size();
+	params.numStartRow = alignment->getNSeq();
+	params.numAddRow = 0;
 
 	ppRunOriginalSpr(alignment, params, treeAfterPhase1);
 	delete alignment;
