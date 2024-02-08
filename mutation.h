@@ -23,9 +23,9 @@ struct Mutation
 {
     int position;
     int compressed_position;
-    int ref_nuc;
-    int par_nuc;
-    int mut_nuc;
+    char ref_nuc;
+    char par_nuc;
+    char mut_nuc;
     bool is_missing;
     inline bool operator<(const Mutation &m) const
     {

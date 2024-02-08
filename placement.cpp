@@ -440,7 +440,6 @@ void addMoreRowMutation(Params &params)
 		for (auto &m : permCol)
 			m++;
 	}
-	cout << '\n';
 
 	for (int i = 0; i < (int)permCol.size(); ++i)
 	{
@@ -464,63 +463,16 @@ void addMoreRowMutation(Params &params)
 	tree->add_row = false;
 
 	cout << "Tree parsimony after init mutations: " << tree->computeParsimony() << " " << tree->computeParsimonyScoreMutation() << '\n';
-	int num_sample = (int)alignment->missingSamples.size();
-	vector<MutationNode> missingSamples(num_sample);
+	
+	int numSample = (int)alignment->missingSamples.size();
+	vector<MutationNode> missingSamples(numSample);
 	for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
 	{
 		missingSamples[i].mutations = alignment->missingSamples[i];
 		missingSamples[i].name = alignment->remainName[i];
 	}
-	int numSample = min((int)missingSamples.size(), params.numAddRow);
-	// for (int i = 0; i < numSample; ++i)
-	// {
-	// 	vector<pair<PhyloNode *, PhyloNeighbor *>> bfs = tree->breadth_first_expansion();
-	// 	size_t total_nodes = (int)bfs.size();
-	// 	// Stores the excess mutations to place the sample at each
-	// 	// node of the tree in DFS order. When placement is as a
-	// 	// child, it only contains parsimony-increasing mutations in
-	// 	// the sample. When placement is as a sibling, it contains
-	// 	// parsimony-increasing mutations as well as the mutations
-	// 	// on the placed node in common with the new sample. Note
-	// 	// guaranteed to be corrrect only for optimal nodes since
-	// 	// the mapper can terminate the search early for non-optimal
-	// 	// nodes
-	// 	std::vector<std::vector<Mutation>> node_excess_mutations(total_nodes);
-	// 	// Stores the imputed mutations for ambiguous bases in the
-	// 	// sampled in order to place the sample at each node of the
-	// 	// tree in DFS order. Again, guaranteed to be corrrect only
-	// 	// for pasrimony-optimal nodes
+	numSample = min(numSample, params.numAddRow);
 
-	// 	bool best_node_has_unique = false;
-
-	// 	std::vector<bool> node_has_unique(total_nodes, false);
-	// 	size_t best_node_num_leaves = 0;
-	// 	int best_set_difference = INF;
-	// 	int set_difference = INF;
-	// 	size_t best_j = 0;
-	// 	size_t best_distance = (size_t)1e9 + 7;
-
-	// 	for (int j = 0; j < (int)bfs.size(); ++j)
-	// 	{
-	// 		CandidateNode inp;
-	// 		inp.node = bfs[j].first;
-	// 		inp.node_branch = bfs[j].second;
-	// 		inp.distance = bfs[j].second->distance;
-	// 		inp.missing_sample_mutations = &missingSamples[i].mutations;
-	// 		inp.excess_mutations = &node_excess_mutations[j];
-	// 		inp.best_node_num_leaves = &best_node_num_leaves;
-	// 		inp.best_set_difference = &best_set_difference;
-	// 		inp.set_difference = &set_difference;
-	// 		inp.best_j = &best_j;
-	// 		inp.best_distance = &best_distance;
-	// 		inp.j = j;
-	// 		inp.has_unique = &best_node_has_unique;
-	// 		inp.node_has_unique = &(node_has_unique);
-
-	// 		tree->calculatePlacementMutation(inp, false, true);
-	// 	}
-	// 	tree->addNewSample(bfs[best_j].first, bfs[best_j].second, node_excess_mutations[best_j], i, missingSamples[i].name);
-	// }
 	for (int i = 0; i < numSample; ++i)
 	{
 		vector<pair<PhyloNode *, PhyloNeighbor *>> bfs = tree->breadth_first_expansion();
@@ -540,7 +492,6 @@ void addMoreRowMutation(Params &params)
 		inp.best_distance = &best_distance;
 		inp.node = (PhyloNode*)tree->root->neighbors[0]->node;
 		inp.node_branch = (PhyloNeighbor*)inp.node->findNeighbor(tree->root);
-		inp.distance = inp.node_branch->distance;
 		inp.missing_sample_mutations = &missingSamples[i].mutations;
 		inp.excess_mutations = &excess_mutations;
 		inp.has_unique = &best_node_has_unique;
@@ -560,9 +511,7 @@ void addMoreRowMutation(Params &params)
 		inp.j = best_j;
 		inp.node = bfs[best_j].first;
 		inp.node_branch = bfs[best_j].second;
-		inp.distance = bfs[best_j].second->distance;
 		tree->calculatePlacementMutation(inp, false, true);
-		// cout << bfs[best_j].second->distance << '\n';
 		tree->addNewSample(bfs[best_j].first, bfs[best_j].second, excess_mutations, i, missingSamples[i].name);
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
@@ -584,7 +533,7 @@ void addMoreRowMutation(Params &params)
 	string treeAfterPhase1 = ss.str();
 
 	alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
-	tree->checkMutation(pos);
+	// tree->checkMutation(pos);
 	params.numStartRow = alignment->getNSeq();
 	params.numAddRow = 0;
 

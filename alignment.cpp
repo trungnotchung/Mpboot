@@ -1185,7 +1185,7 @@ char Alignment::convertStateBack(char state)
     }
 }
 
-int Alignment::getMutationFromState(char state)
+char Alignment::getMutationFromState(char state)
 {
     int value = convertState(state, SEQ_DNA);
     switch (value)
