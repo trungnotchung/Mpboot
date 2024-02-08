@@ -357,6 +357,7 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
 	double end_time = getCPUTime();
 	cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	cout << "Memory: " << getMemory() << " KB\n";
 
 	if (params.pp_test_spr)
 	{
@@ -516,6 +517,7 @@ void addMoreRowMutation(Params &params)
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
 	cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
+	cout << "Memory: " << getMemory() << " KB\n";
 	
 	// free memory
 	tree->cur_missing_sample_mutations.clear();
