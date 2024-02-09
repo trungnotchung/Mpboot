@@ -494,9 +494,42 @@ extern int NNI_MAX_NR_STEP;
 struct Params
 {
         /**
+         * tbr variables
+        */
+        bool spr_test;
+        bool spr_tbr;
+        int tbr_alternate;
+        int spr_alternate;
+        bool tbr_spr;
+        bool tbr_init;
+        bool tbr_test_draw;
+        bool tbr_test;
+        bool tbr_pars;
+        int tbr_mintrav;
+        int tbr_maxtrav;
+        bool tbr_insert_nni;
+        bool tbr_traverse_ver1;
+        bool tbr_restore_ver2;
+
+        /**
+         * doing spr in tree after placement
+        */
+        bool ppoptspr;
+
+        /**
+         * doing spr in tree after placement
+        */
+        bool ppopttbr;
+
+        /**
          * doing spr in tree
          */
         bool pporigspr;
+
+        /**
+         * doing spr in tree
+         */
+        bool pporigtbr;
 
         /**
          * use if you want analyze alignment
@@ -531,7 +564,7 @@ struct Params
         /**
          * Checking correct tree
          */
-        bool pp_test_spr;
+        bool pp_test_optimize;
 
         /**
          * Tree zip file name

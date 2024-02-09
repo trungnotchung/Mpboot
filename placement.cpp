@@ -325,7 +325,52 @@ void configLeafNames(IQTree *tree, Node *node, Node *dad)
 	configLeafNames(tree, (*it)->node, node);
 }
 
-void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = "")
+string ppRunOriginalTbr(Alignment *alignment, Params &params, string newickTree = "")
+{
+	cout << "\n========== Start TBR core ==========\n";
+	IQTree *tree = new IQTree(alignment);
+	tree->params = &params;
+	if (newickTree == "")
+	{
+		bool is_rooted = params.is_rooted;
+		tree->readTree(params.mutation_tree_file, is_rooted);
+	}
+	else
+	{
+		tree->readTreeString(newickTree);
+	}
+
+	ofstream fout1("tree_tbr_1.txt");
+	tree->drawTree(fout1, WT_SORT_TAXA | WT_NEWLINE);
+
+	// becasue the tree is read from file and file contains its name, not its id
+	configLeafNames(tree, tree->root, NULL);
+
+	tree->initializeAllPartialPars();
+	tree->clearAllPartialLH();
+	tree->curScore = tree->computeParsimony();
+	cout << "Tree's score before running tbr: " << tree->curScore << '\n';
+
+	double start_time = getCPUTime();
+	string newTreeString = tree->ppRunOriginalTbr();
+	ofstream fout2("tree_tbr_2.txt");
+	tree->drawTree(fout2, WT_SORT_TAXA | WT_NEWLINE);
+	double end_time = getCPUTime();
+	cout << "Time running TBR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	cout << "Memory: " << getMemory() << " KB\n";
+
+	if (params.pp_test_optimize)
+	{
+		ofstream fout("newTree.txt");
+		tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
+		fout.close();
+		checkCorectTree(params.original_tree_file, "newTree.txt");
+	}
+
+	return newTreeString;
+}
+
+string ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = "")
 {
 	cout << "\n========== Start spr core ==========\n";
 	IQTree *tree = new IQTree(alignment);
@@ -359,13 +404,14 @@ void ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree = 
 	cout << "Time running SPR: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
 	cout << "Memory: " << getMemory() << " KB\n";
 
-	if (params.pp_test_spr)
+	if (params.pp_test_optimize)
 	{
 		ofstream fout("newTree.txt");
 		tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
 		fout.close();
 		checkCorectTree(params.original_tree_file, "newTree.txt");
 	}
+	return newTreeString;
 }
 
 void addMoreRowMutation(Params &params)
@@ -389,6 +435,12 @@ void addMoreRowMutation(Params &params)
 	if (params.pporigspr)
 	{
 		ppRunOriginalSpr(alignment, params);
+		delete alignment;
+		return;
+	}
+
+	if (params.pporigtbr) {
+		ppRunOriginalTbr(alignment, params);
 		delete alignment;
 		return;
 	}
@@ -537,9 +589,21 @@ void addMoreRowMutation(Params &params)
 	alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
 	// tree->checkMutation(pos);
 	params.numStartRow = alignment->getNSeq();
-	params.numAddRow = 0;
+	// params.numAddRow = 0;
 
-	ppRunOriginalSpr(alignment, params, treeAfterPhase1);
+	cout << "========= Starting optimization =========\n";
+	const int start_time = getCPUTime();
+	if (params.ppoptspr) {
+		treeAfterPhase1 = ppRunOriginalSpr(alignment, params, treeAfterPhase1);
+	}
+
+	if (params.ppopttbr) {
+		treeAfterPhase1 = ppRunOriginalTbr(alignment, params, treeAfterPhase1);
+	}
+	const int end_time = getCPUTime();
+	cout << "Time: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	
+	
 	delete alignment;
 	alignment = NULL;
 	delete tree;
