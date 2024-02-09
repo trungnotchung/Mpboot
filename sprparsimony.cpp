@@ -536,7 +536,7 @@ void newviewSankoffParsimonyIterativeFastSIMD(pllInstance *tr, partitionList *pr
   }
 }
 
-static void newviewParsimonyIterativeFast(pllInstance *tr, partitionList *pr, int perSiteScores)
+void newviewParsimonyIterativeFast(pllInstance *tr, partitionList *pr, int perSiteScores)
 {
   if (pllCostMatrix)
   {
@@ -944,7 +944,7 @@ parsimonyNumber evaluateSankoffParsimonyIterativeFastSIMD(pllInstance *tr, parti
   return total_sum;
 }
 
-static unsigned int evaluateParsimonyIterativeFast(pllInstance *tr, partitionList *pr, int perSiteScores)
+unsigned int evaluateParsimonyIterativeFast(pllInstance *tr, partitionList *pr, int perSiteScores)
 {
   if (pllCostMatrix)
   {
@@ -1903,7 +1903,7 @@ static unsigned int evaluateParsimony(pllInstance *tr, partitionList *pr, nodept
   return result;
 }
 
-static void newviewParsimony(pllInstance *tr, partitionList *pr, nodeptr p, int perSiteScores)
+void newviewParsimony(pllInstance *tr, partitionList *pr, nodeptr p, int perSiteScores)
 {
   if (p->number <= tr->mxtips)
     return;
@@ -2230,7 +2230,7 @@ static nodeptr removeNodeParsimony(nodeptr p)
   return q;
 }
 
-static unsigned int myEvaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores)
+unsigned int myEvaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores)
 {
   volatile unsigned int result;
   nodeptr q = p->back;

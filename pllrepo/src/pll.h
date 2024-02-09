@@ -1185,8 +1185,13 @@ typedef  struct  {
   double           likelihood;           /**< last likelihood value evaluated for the current topology */
  
   node           **nodep;                /**< pointer to the list of nodes, which describe the current topology */
+  node           **nodep_dfs;                /**< pointer to the list of nodes, which describe the current topology */
+
   nodeptr          nodeBaseAddress;
   node            *start;                /**< starting node by default for full traversals (must be a tip contained in the tree we are operating on) */
+  node *curRoot; /** For TBR recompute parsimony */
+  node *curRootBack; /** For TBR recompute parsimony */
+
   int              mxtips;  /**< Number of tips in the topology */
 
   int              *constraintVector;   /**< @todo What is this? */
@@ -1215,6 +1220,12 @@ typedef  struct  {
   double bestOfNode;
   nodeptr removeNode;   /**< the node that has been removed. Together with \a insertNode represents an SPR move */
   nodeptr insertNode;   /**< the node where insertion should take place . Together with \a removeNode represents an SPR move*/
+
+  // TBR move
+  nodeptr TBR_removeBranch;
+  nodeptr TBR_insertBranch1;
+  nodeptr TBR_insertBranch2;
+  pllBoolean TBR_insertNNI;
 
   double zqr[PLL_NUM_BRANCHES];
   double currentZQR[PLL_NUM_BRANCHES];
