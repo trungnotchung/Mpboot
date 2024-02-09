@@ -31,6 +31,7 @@
 #include "vectorclass/vectorclass.h"
 #include "vectorclass/vectormath_common.h"
 #include "parstree.h"
+#include "tbrparsimony.h"
 
 Params *globalParam;
 Alignment *globalAlignment;
@@ -58,6 +59,10 @@ void IQTree::init()
     curScore = 0.0;       // Current score of the tree
     bestScore = -DBL_MAX; // Best score found so far
     curIt = 1;
+    cntItersNotImproved = 0;
+    globalScore = UINT_MAX; 
+    cnt_tbr_spr_alternate = 1;
+
     cur_pars_score = -1;
     //    enable_parsimony = false;
     estimate_nni_cutoff = false;
@@ -2496,6 +2501,45 @@ string IQTree::doNNISearch(int &nniCount, int &nniSteps)
         treeString = getTreeString();
     }
 
+    return treeString;
+}
+
+string IQTree::ppRunOriginalTbr()
+{
+    if (pllInst) {
+        pllDestroyInstance(pllInst);
+        pllInst = NULL;
+    }
+    if (pllPartitions) {
+        myPartitionsDestroy(pllPartitions);
+        pllPartitions = NULL;
+    }
+    if (pllAlignment) {
+        pllAlignmentDataDestroy(pllAlignment);
+        pllAlignment = NULL;
+    }
+    PatternComp pcomp;
+    sort(aln->begin(), aln->end(), pcomp);
+    aln->updateSitePatternAfterOptimized();
+
+    initializePLL(*params);
+
+
+    pllNewickTree *btree = pllNewickParseString(getTreeString().c_str());
+    assert(btree != NULL);
+    pllTreeInitTopologyNewick(pllInst, btree, PLL_FALSE);
+    pllNewickParseDestroy(&btree);
+
+    assert(pllInst != NULL && pllPartitions != NULL);
+    printf("Tbr start...\n");
+    printf("Tbr radius: %d %d\n", params->tbr_mintrav, params->tbr_maxtrav);
+    const int scoreAfterRunTbr = pllOptimizeTbrParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    printf("Score after running tbr: %d\n", scoreAfterRunTbr);
+
+    pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_FALSE,
+                    PLL_TRUE, 0, 0, 0, PLL_SUMMARIZE_LH, 0, 0);
+    string treeString = string(pllInst->tree_string);
+    readTreeString(treeString);
     return treeString;
 }
 

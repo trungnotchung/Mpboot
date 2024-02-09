@@ -454,6 +454,22 @@ public:
     void setBestTree(string tree, double logl);
 
     /**
+     * Number of iterations of doing SPR/TBR but MP Score didn't improve. 
+     * If > some threshold, do TBR instead
+     */
+    int cntItersNotImproved;
+    unsigned int globalScore;
+
+    /**
+     * Current number of itertions used TBR/SPR.
+     * If > 0, means is using TBR.
+     * If < 0, means is using SPR.
+     * If abs(cnt_tbr_spr_alternate) == params.tbr_spr_alternate, alternate from TBR/SPR to SPR/TBR and reset cnt_tbr_spr_alternate
+     */
+    int cnt_tbr_spr_alternate;
+
+
+    /**
             current parsimony score of the tree
      */
     int cur_pars_score;
@@ -595,6 +611,9 @@ public:
     int cost_nstates;          // Sep 2016: # of states provided by cost matrix
 
     string ppRunOriginalSpr();
+
+    string ppRunOriginalTbr();
+
 
 protected:
     /**
