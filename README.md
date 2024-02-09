@@ -18,11 +18,14 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * **-pp_n**: number of available samples on tree.
 * **-pp_k**: number of missing samples.
 * **-pp_tree**: tree file.
-* **-pp_orig_spr**: run spr without changing origin tree.
-* **-pp_test_spr**: enable check correct tree.
+* **-pp_orig_spr**: run spr without placement and changing origin tree.
+* **-pp_orig_tbr**: run tbr without placement and changing origin tree.
+* **-pp_test_optimize**: enable check correct tree.
 * **-pp_origin**: origin tree file.
 * **-pp_zip_aln**: alignment's zip file.
 * **-pp_zip_tree**: tree's zip file.
+* **-pp_opt_spr**: run spr after placement
+* **-pp_opt_tbr**: run tbr after placement
 
 ### **Command**
 * Add missing samples to existing tree:
@@ -34,11 +37,11 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
   ``./mpboot -s data/test5/1/added5.vcf -pp_tree data/test5/1/origin5.fasta.treefile -pp_on -pp_k 5 -pp_n 5``
 * Check if tree unchanged
   <br>
-  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_spr -pp_k <missing samples> -pp_orig_spr``
+  ``./mpboot -s <vcf file> -pp_tree <tree file> -pp_origin <origin tree file> -pp_on -pp_test_optimize -pp_k <missing samples> -pp_orig_spr``
   <br>
   *Example:*
   <br>
-  ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_spr -pp_k 5 -pp_orig_spr``
+  ``./mpboot -s data/test5/1/added5.vcf -pp_tree addedTree.txt -pp_origin data/test5/1/origin5.fasta.treefile -pp_on -pp_test_optimize -pp_k 5 -pp_orig_spr``
 <hr>
 <br><br><br>
 
