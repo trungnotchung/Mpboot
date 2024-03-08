@@ -511,6 +511,8 @@ struct Params
         bool tbr_traverse_ver1;
         bool tbr_restore_ver2;
 
+        bool restructureTree; 
+
         /**
          * doing spr in tree after placement
         */

@@ -2533,7 +2533,9 @@ string IQTree::ppRunOriginalTbr()
     assert(pllInst != NULL && pllPartitions != NULL);
     printf("Tbr start...\n");
     printf("Tbr radius: %d %d\n", params->tbr_mintrav, params->tbr_maxtrav);
-    const int scoreAfterRunTbr = pllOptimizeTbrParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    int scoreAfterRunTbr;
+    if (!params->restructureTree) scoreAfterRunTbr = myPllOptimizeTbrParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    else scoreAfterRunTbr = pllOptimizeTbrParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
     printf("Score after running tbr: %d\n", scoreAfterRunTbr);
 
     pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_FALSE,
@@ -2572,7 +2574,9 @@ string IQTree::ppRunOriginalSpr()
     assert(pllInst != NULL && pllPartitions != NULL);
     printf("Spr start...\n");
     printf("Spr radius: %d %d\n", params->spr_mintrav, params->spr_maxtrav);
-    const int scoreAfterRunSpr = myPllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    int scoreAfterRunSpr;
+    if (!params->restructureTree) scoreAfterRunSpr = myPllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
+    else scoreAfterRunSpr = pllOptimizeSprParsimony(pllInst, pllPartitions, params->spr_mintrav, params->spr_maxtrav, this);
     printf("Score after running spr: %d\n", scoreAfterRunSpr);
 
     pllTreeToNewick(pllInst->tree_string, pllInst, pllPartitions, pllInst->start->back, PLL_FALSE,

@@ -56,6 +56,8 @@ int _pllAddMoreRow(pllInstance *tr, partitionList *pr);
 
 int myPllOptimizeSprParsimony(pllInstance * tr, partitionList * pr, int mintrav, int maxtrav, IQTree *iqtree);
 
+unsigned int evaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores);
+
 unsigned int myEvaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores);
 
 void newviewParsimonyIterativeFast(pllInstance *tr, partitionList *pr, int perSiteScores);

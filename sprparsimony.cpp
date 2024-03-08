@@ -1870,7 +1870,7 @@ static unsigned int evaluateParsimonyIterativeFast(pllInstance *tr, partitionLis
 
 #endif
 
-static unsigned int evaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores)
+unsigned int evaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, pllBoolean full, int perSiteScores)
 {
   volatile unsigned int result;
   nodeptr q = p->back;

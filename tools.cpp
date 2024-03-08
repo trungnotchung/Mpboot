@@ -657,6 +657,7 @@ void get2RandNumb(const int size, int &first, int &second)
 void parseArg(int argc, char *argv[], Params &params)
 {
 	int cnt;
+	params.restructureTree = false;
 	params.spr_test = false;
     params.spr_tbr = false;
     params.tbr_alternate = -1;
@@ -989,7 +990,11 @@ void parseArg(int argc, char *argv[], Params &params)
 #endif
 				continue;
 			}
-			            if (strcmp(argv[cnt], "-spr_tbr") == 0) {
+			if (strcmp(argv[cnt], "restructure") == 0) {
+				params.restructureTree = true;
+				continue;
+			}
+			if (strcmp(argv[cnt], "-spr_tbr") == 0) {
                 params.spr_tbr = true;
                 continue;
             }
