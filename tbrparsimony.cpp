@@ -1845,6 +1845,93 @@ static int pllComputeTBRVer3(pllInstance *tr, partitionList *pr, nodeptr p,
     return PLL_TRUE;
 }
 
+/** Based on PLL
+ @brief Find best TBR move given removeBranch
+
+ Recursively tries all possible TBR moves that can be performed by
+ pruning the branch at \a p and testing all possible 2 inserted branches
+ in a distance of at least \a mintrav nodes and at most \a maxtrav nodes from
+ each other
+
+ @param tr
+ PLL instance
+
+ @param pr
+ List of partitions
+
+ @param p
+ Node specifying the pruned branch.
+
+ @param mintrav
+ Minimum distance of 2 inserted branches
+
+ @param maxtrav
+ Maximum distance of 2 inserted branches
+
+ @param perSiteScores
+ Calculate scores for each site (Bootstrapping)
+
+ @note
+ Version 3 called pllTraverseUpdateTBRVer3 (default use version 2).
+ */
+static int myPllComputeTBRVer3(pllInstance *tr, partitionList *pr, nodeptr p,
+                             int mintrav, int maxtrav, int perSiteScores) {
+
+    nodeptr p1, p2, q, q1, q2;
+    nodeptr *bestIns1, *bestIns2;
+
+    q = p->back;
+
+    if (isTip(p->number, tr->mxtips) || isTip(q->number, tr->mxtips)) {
+        // errno = PLL_TBR_NOT_INNER_BRANCH;
+        return PLL_FALSE;
+    }
+
+    if (p->numOriginalLeaves != 0 && p->numOriginalLeaves != tr->mxtips - tr->numAddRows) {
+        return PLL_FALSE;
+    }
+    if (q->numOriginalLeaves != 0 && q->numOriginalLeaves != tr->mxtips - tr->numAddRows) {
+        return PLL_FALSE;
+    }
+
+    p1 = p->next->back;
+
+    p2 = p->next->next->back;
+    q1 = q->next->back;
+    q2 = q->next->next->back;
+
+    if (maxtrav < 1 || mintrav > maxtrav)
+        return PLL_BADREAR;
+    /* split the tree in two components */
+    assert(pllTbrRemoveBranch(tr, pr, p));
+
+    /* p1 and p2 are now connected */
+    assert(p1->back == p2 && p2->back == p1);
+    bestIns1 = &p1;
+    bestIns2 = &q1;
+
+    /* recursively traverse and perform TBR */
+    pllTraverseUpdateTBRVer3P(tr, pr, p1, q1, &p, bestIns1, bestIns2, mintrav,
+                              maxtrav, perSiteScores);
+    if (!isTip(p2->number, tr->mxtips)) {
+        pllTraverseUpdateTBRVer3P(tr, pr, p2->next->back, q1, &p, bestIns1,
+                                  bestIns2, mintrav, maxtrav, perSiteScores);
+        pllTraverseUpdateTBRVer3P(tr, pr, p2->next->next->back, q1, &p,
+                                  bestIns1, bestIns2, mintrav, maxtrav,
+                                  perSiteScores);
+    }
+    /* restore the topology as it was before the split */
+    nodeptr freeBranch = (p->xPars ? p : q);
+    p1 = ((*bestIns1)->xPars ? (*bestIns1) : (*bestIns1)->back);
+    q1 = ((*bestIns2)->xPars ? (*bestIns2) : (*bestIns2)->back);
+    assert(pllTbrConnectSubtrees(tr, p1, q1, &freeBranch));
+    evaluateParsimonyTBR(tr, pr, p1, q1, freeBranch, perSiteScores);
+    tr->curRoot = freeBranch;
+    tr->curRootBack = freeBranch->back;
+
+    return PLL_TRUE;
+}
+
 static int pllTestTBRMoveLeaf(pllInstance *tr, partitionList *pr,
                               nodeptr insertBranch, nodeptr removeBranch,
                               int perSiteScores) {
@@ -2318,7 +2405,7 @@ int myPllOptimizeTbrParsimony(pllInstance *tr, partitionList *pr, int mintrav,
                 }
             } else {
                 if (globalParam->tbr_restore_ver2 == true) {
-                    pllComputeTBRVer3(tr, pr, tr->nodep_dfs[i], mintrav,
+                    myPllComputeTBRVer3(tr, pr, tr->nodep_dfs[i], mintrav,
                                       maxtrav, perSiteScores);
                 } else if (globalParam->tbr_traverse_ver1 == true) {
                     pllComputeTBRVer1(tr, pr, tr->nodep_dfs[i], mintrav,

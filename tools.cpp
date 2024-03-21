@@ -990,7 +990,7 @@ void parseArg(int argc, char *argv[], Params &params)
 #endif
 				continue;
 			}
-			if (strcmp(argv[cnt], "restructure") == 0) {
+			if (strcmp(argv[cnt], "-restructure") == 0) {
 				params.restructureTree = true;
 				continue;
 			}

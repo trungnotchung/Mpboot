@@ -18,14 +18,15 @@ MPBoot: Fast phylogenetic maximum parsimony tree inference and bootstrap approxi
 * **-pp_n**: number of available samples on tree.
 * **-pp_k**: number of missing samples.
 * **-pp_tree**: tree file.
-* **-pp_orig_spr**: run spr without placement and changing origin tree.
-* **-pp_orig_tbr**: run tbr without placement and changing origin tree.
+* **-pp_orig_spr**: run spr without placement.
+* **-pp_orig_tbr**: run tbr without placement.
 * **-pp_test_optimize**: enable check correct tree.
 * **-pp_origin**: origin tree file.
 * **-pp_zip_aln**: alignment's zip file.
 * **-pp_zip_tree**: tree's zip file.
 * **-pp_opt_spr**: run spr after placement
 * **-pp_opt_tbr**: run tbr after placement
+* **-restructure**: restucture tree.
 
 ### **Command**
 * Add missing samples to existing tree:
