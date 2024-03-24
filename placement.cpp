@@ -315,6 +315,16 @@ void checkCorectTree(char *originTreeFile, char *newTreeFile)
 	delete newTree;
 }
 
+vector<string> getLeafName(char *file) {
+	IQTree *tree = new IQTree;
+	bool is_rooted = false;
+	tree->readTree(file, is_rooted);
+	vector<string> leafNames;
+	tree->getLeafName(leafNames);
+	delete tree;
+	return leafNames;
+}
+
 void configLeafNames(IQTree *tree, Node *node, Node *dad)
 {
 	if (node->isLeaf())
@@ -416,16 +426,11 @@ string ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree 
 
 void addMoreRowMutation(Params &params)
 {
-	Alignment *alignment;
+	vector<string> leafNames = getLeafName(params.mutation_tree_file);
 
-	if (params.alignment_zip_file != NULL)
-	{
-		alignment = new Alignment(params.alignment_zip_file, params.aln_file, params.sequence_type, params.intype, params.numStartRow);
-	}
-	else
-	{
-		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
-	}
+	Alignment *alignment;
+	alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow, leafNames);
+	// alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
 	alignment->checkGappySeq();
 	while(alignment->remainSeq.size() > params.numAddRow) {
 		alignment->remainSeq.pop_back();
@@ -444,7 +449,6 @@ void addMoreRowMutation(Params &params)
 		delete alignment;
 		return;
 	}
-
 	IQTree *tree;
 	tree = new IQTree;
 

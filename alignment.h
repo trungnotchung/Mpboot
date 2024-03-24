@@ -65,6 +65,7 @@ public:
         
         Alignment(char* filename, char* sequence_type, InputType& intype, int numStartRow = 1000000000);
 
+        Alignment(char* filename, char* sequence_type, InputType& intype, int numStartRow, vector<string>& leafNames);
         /**
                 destructor
          */
@@ -620,6 +621,8 @@ public:
         vector<int> findPermCol();
 
         int readVCF(char* filename, char* sequence_type, int numStartRow);
+
+        int readVCF(char* filename, char* sequence_type, int numStartRow, vector<string>& leafNames);
 
         vector<vector<Mutation>> missingSamples;
         vector<vector<Mutation>> existingSamples;

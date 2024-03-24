@@ -572,6 +572,31 @@ Alignment::Alignment(char* filename, char* sequence_type, InputType& intype, int
     // cout << "Fraction of constant sites: " << frac_const_sites << endl;
 }
 
+Alignment::Alignment(char* filename, char* sequence_type, InputType& intype, int numStartRow, vector<string> &leafNames) : vector<Pattern>()
+{
+    num_states = 0;
+    frac_const_sites = 0.0;
+    codon_table = NULL;
+    genetic_code = NULL;
+    non_stop_codon = NULL;
+    seq_type = SEQ_UNKNOWN;
+    STATE_UNKNOWN = 126;
+    cout << "Reading alignment file " << filename << " ... ";
+    cout << "VCF format detected" << endl;
+    readVCF(filename, sequence_type, numStartRow, leafNames);
+    if (getNSeq() < 3)
+        outError("Alignment must have at least 3 sequences");
+    cout << "Alignment has " << getNSeq() << " sequences with " << getNSite() << " columns and " << getNPattern() << " patterns" << endl;
+    buildSeqStates();
+    checkSeqName();
+    // OBSOLETE: identical sequences are handled later
+    //	checkIdenticalSeq();
+    // cout << "Number of character states is " << num_states << endl;
+    // cout << "Number of patterns = " << size() << endl;
+    countConstSite();
+    // cout << "Fraction of constant sites: " << frac_const_sites << endl;
+}
+
 void Alignment::buildSeqStates(bool add_unobs_const)
 {
     string unobs_const;
@@ -1727,6 +1752,124 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow) {
     return buildPattern(sequences, sequence_type, nseq, nsite);;
 }
 
+int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow, vector<string>& leafNames) {
+    StrVector sequences;
+    ifstream in;
+    in.exceptions(ios::failbit | ios::badbit);
+    in.open(filename);
+    int nseq = 0; // reference sequence
+    int nsite = 0;
+    int seq_id = 0;
+    string line;
+    in.exceptions(ios::badbit);
+    int curPosition = 0;
+    map<string, bool> leafNameMap;
+    for (int i = 0; i < (int)leafNames.size(); ++i) {
+        leafNameMap[leafNames[i]] = true;
+    }
+    vector<bool> isLeaf;
+
+    for (; !in.eof();) {
+        getline(in, line);
+        if (line == "") continue;
+        vector<string> words;
+        split(line, words, "\t");
+        if (words.size() == 1) continue;
+        if (words[1] == "POS") {
+            // Sample names start from the 10th word in the header
+            for (int j = 9; j < words.size(); j++) {
+                if(leafNameMap[words[j]]) {
+                    seq_names.push_back(words[j]);
+                    isLeaf.push_back(true);
+                    ++nseq;
+                } else {
+                    remainName.push_back(words[j]);
+                    isLeaf.push_back(false);
+                }
+            }
+            sequences.resize(nseq, "");
+            missingSamples.resize(remainName.size());
+            existingSamples.resize(nseq);
+            remainSeq.resize(remainName.size());
+        }
+        else {
+            if (words.size() != 9 + nseq + missingSamples.size())
+                throw "Number of columns in VCF file is not consistent";
+            vector<string> alleles;
+            Mutation cur_mut;
+            int variant_pos = std::stoi(words[1]); cur_mut.position = variant_pos;
+            cur_mut.compressed_position = curPosition;
+            while((int)reference_nuc.size() <= cur_mut.position)
+                reference_nuc.push_back(0);
+            split(words[4], alleles, ",");
+            cur_mut.ref_nuc = getMutationFromState(words[3][0]);
+            if(reference_nuc[cur_mut.position] == 0)
+                reference_nuc[cur_mut.position] = cur_mut.ref_nuc;
+
+            int cnt0 = 0, cnt1 = 0;
+            for (int j = 9; j < words.size(); ++j) {
+                cur_mut.is_missing = false;
+                if (isdigit(words[j][0])) {
+                    int allele_id = std::stoi(words[j]);
+                    if (allele_id > 0) {
+                        std::string allele = alleles[allele_id - 1];
+                        if (isLeaf[j - 9]) {
+                            sequences[cnt0].push_back(allele[0]);
+                        }
+                        else 
+                            remainSeq[cnt1].push_back(allele[0]);
+                        cur_mut.mut_nuc = getMutationFromState(allele[0]);
+                    }
+                    else {
+                        if (isLeaf[j - 9]) {
+                            sequences[cnt0].push_back(words[3][0]);
+                        }
+                        else 
+                            remainSeq[cnt1].push_back(words[3][0]);
+                        cur_mut.mut_nuc = getMutationFromState(words[3][0]);
+                    }
+                }
+                else {
+                    // not a mutation
+                    if (isLeaf[j - 9]) {
+                        sequences[cnt0].push_back('-');
+                    }
+                    else 
+                        remainSeq[cnt1].push_back('-');
+                    cur_mut.mut_nuc = getMutationFromState('N');
+                    cur_mut.is_missing = true;
+                }
+
+                if (!isLeaf[j-9]) {
+                    if (cur_mut.mut_nuc != cur_mut.ref_nuc)
+                    {
+                        cur_mut.par_nuc = cur_mut.ref_nuc;
+                        missingSamples[cnt1].push_back(cur_mut);
+                    }
+                    ++cnt1;
+                } else {
+                    // assert(cur_mut.ref_nuc > 0);
+                    existingSamples[cnt0].push_back(cur_mut);
+                    ++cnt0;
+                }
+            }
+            ++nsite;
+            ++curPosition;
+        }
+    }
+    saveCol.assign((int)sequences[0].length(), "");
+    for (int i = 0; i < (int)sequences.size(); ++i)
+    {
+        for (int j = 0; j < (int)sequences[i].length(); ++j)
+            saveCol[j] += sequences[i][j];
+    }
+    in.clear();
+    // set the failbit again
+    in.exceptions(ios::failbit | ios::badbit);
+    in.close();
+    return buildPattern(sequences, sequence_type, nseq, nsite);;
+}
+
 int Alignment::readPhylip(char* filename, char* sequence_type, int numStartRow)
 {
     StrVector sequences;
@@ -2253,7 +2396,7 @@ void Alignment::extractSites(Alignment* aln, IntVector& site_id)
     // cout << __func__ << " " << num_states << endl;
 }
 
-void convert_range(const char* str, int& lower, int& upper, int& step_size, char*& endptr) throw(string)
+void convert_range(const char* str, int& lower, int& upper, int& step_size, char*& endptr) throw (string)
 {
     // char *endptr;
     char* beginptr = (char*)str;
