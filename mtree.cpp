@@ -625,8 +625,7 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
 {
     Node *node;
     int maxlen = 10000;
-    vector<char> seqname(maxlen);
-    // char seqname[10000];
+    string seqname;
     int seqlen;
     double brlen;
     branch_len = -1.0;
@@ -661,6 +660,7 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
     }
     // now read the node name
     seqlen = 0;
+    seqname = "";
     char end_ch = 0;
     if (ch == '\'' || ch == '"') end_ch = ch;
 
@@ -669,11 +669,15 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
         if (end_ch == 0) {
             if (is_newick_token(ch) || controlchar(ch)) break;
         }
-        seqname[seqlen++] = ch;
+        // seqname[seqlen++] = ch;
+        seqname += ch;
+        seqlen ++;
         ch = infile.get();
         in_column++;
         if (end_ch != 0 && ch == end_ch) {
-            seqname[seqlen++] = ch;
+            // seqname[seqlen++] = ch;
+            seqname += ch;
+            seqlen ++;
             break;
         }
     }
@@ -681,11 +685,11 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
         ch = readNextChar(infile, ch);
     if (seqlen == maxlen)
         throw "Too long name ( > 100)";
-    seqname[seqlen] = 0;
+    // seqname[seqlen] = 0;
     if (seqlen == 0 && root->isLeaf())
         throw "A taxon has no name.";
     if (seqlen > 0)
-        root->name.insert(root->name.end(), seqname.begin(), seqname.end());
+        root->name.append(seqname);
     if (root->isLeaf()) {
         // is a leaf, assign its ID
         root->id = leafNum;
@@ -700,9 +704,11 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
     {
         ch = readNextChar(infile);
         seqlen = 0;
+        seqname = "";
         while (!is_newick_token(ch) && !controlchar(ch) && !infile.eof() && seqlen < maxlen)
         {
-            seqname[seqlen] = ch;
+            seqname += ch;
+            // seqname[seqlen] = ch;
             seqlen++;
             ch = infile.get();
             in_column++;
@@ -711,12 +717,12 @@ void MTree::parseFile(istream &infile, char &ch, Node* &root, double &branch_len
             ch = readNextChar(infile, ch);
         if (seqlen == maxlen || infile.eof())
             throw "branch length format error.";
-        seqname[seqlen] = 0;
+        // seqname[seqlen] = 0;
         // convert seqname to char array
-        char* seqnameArray = new char[seqlen + 1];
-        for (int i = 0; i <= seqlen; i++)
-            seqnameArray[i] = seqname[i];
-        branch_len = convert_double(seqnameArray);
+        // char* seqnameArray = new char[seqlen + 1];
+        // for (int i = 0; i <= seqlen; i++)
+        //     seqnameArray[i] = seqname[i];
+        branch_len = convert_double(seqname.c_str());
     }
 }
 

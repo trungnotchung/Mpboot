@@ -1768,7 +1768,7 @@ int Alignment::readVCF(char* filename, char* sequence_type, int numStartRow, vec
         leafNameMap[leafNames[i]] = true;
     }
     vector<bool> isLeaf;
-
+    int cnt = 0;
     for (; !in.eof();) {
         getline(in, line);
         if (line == "") continue;
