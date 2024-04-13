@@ -7,8 +7,15 @@
 #include "nnisearch.h"
 #include "mutation.h"
 #include "matoptimize.h"
+#include "fstream"
+#include <filesystem>
 
 const int INF = (int)1e9 + 7;
+
+int readFile(ifstream &inFileStream, char *outFileName, int numRow);
+
+// read VCF file per 8 lines
+int readVCFFile(IQTree *tree, Alignment *alignment, Params &params);
 
 // add more K row using IQTree
 int addMoreRowIQTree(IQTree *tree, Alignment *alignment);

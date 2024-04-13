@@ -414,78 +414,22 @@ string ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree 
 	return newTreeString;
 }
 
-void addMoreRowMutation(Params &params)
-{
-	Alignment *alignment;
-
-	if (params.alignment_zip_file != NULL)
-	{
-		alignment = new Alignment(params.alignment_zip_file, params.aln_file, params.sequence_type, params.intype, params.numStartRow);
-	}
-	else
-	{
-		alignment = new Alignment(params.aln_file, params.sequence_type, params.intype, params.numStartRow);
-	}
-	alignment->checkGappySeq();
-	while(alignment->remainSeq.size() > params.numAddRow) {
-		alignment->remainSeq.pop_back();
-		alignment->remainName.pop_back();
-	}
-
-	if (params.pporigspr)
-	{
-		ppRunOriginalSpr(alignment, params);
-		delete alignment;
-		return;
-	}
-
-	if (params.pporigtbr) {
-		ppRunOriginalTbr(alignment, params);
-		delete alignment;
-		return;
-	}
-
-	IQTree *tree;
-	tree = new IQTree;
-
-	char *file_name = params.mutation_tree_file;
-	bool is_rooted = false;
-
-	if(params.tree_zip_file != NULL) {
-		tree->readTree(params.tree_zip_file, file_name, is_rooted);
-	} else {
-		tree->readTree(file_name, is_rooted);
-	}
-	tree->add_row = true;
-
-	tree->setAlignment(alignment);
-	tree->aln = alignment;
-
-	cout << "\n========== Start placement core ==========\n";
-	auto startTime = getCPUTime();
-
-	// Init new tree's alignment
+void initialize(IQTree *tree, Alignment *alignment) {
 	alignment->ungroupSitePattern();
-
-	// Init new tree's memory
+	tree->add_row = true;
 	tree->save_branch_states_dad = new UINT[(alignment->size() + 7) / 8 + 1];
-
 	cout << "Tree parsimony before add k rows: " << tree->computeParsimony() << '\n';
 	vector<int> permCol = alignment->findPermCol();
 	vector<int> savePermCol = permCol;
 	vector<int> compressedPermCol = permCol;
 	vector<int> pos;
 
-	int sz = 0;
 	if (alignment->existingSamples.size())
 	{
 		for(int j = 0; j < permCol.size(); ++j) {
 			int p = permCol[j];
 			compressedPermCol[j] = alignment->existingSamples[0][p].compressed_position;
 			permCol[j] = alignment->existingSamples[0][p].position;
-		}
-		for(int j = 0; j < alignment->existingSamples[0].size(); ++j) {
-			sz = max(sz, alignment->existingSamples[0][j].compressed_position);
 		}
 	}
 	else
@@ -501,6 +445,86 @@ void addMoreRowMutation(Params &params)
 		pos[permCol[i]] = i;
 	}
 
+	tree->initMutation(permCol, compressedPermCol);
+}
+
+int readFile(ifstream &inFileStream, char *outFileName, int numRow) {
+	ofstream outFile(outFileName);
+	if (!outFile.is_open())
+	{
+		cout << "Cannot open file " << outFileName << '\n';
+		return 0;
+	}
+	string line;
+	int cnt = 0;
+	while (getline(inFileStream, line))
+	{
+		if(line == "") {
+			continue;
+		}
+		outFile << line << '\n';
+		++cnt;
+		if (cnt >= numRow) {
+			break;
+		}
+	}
+	outFile.close();
+	return cnt;
+}
+
+
+int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
+	char *aln_file = params.aln_file;
+	ifstream in;
+    in.exceptions(ios::failbit | ios::badbit);
+    in.open(aln_file);
+	string line;
+    in.exceptions(ios::badbit);
+
+	int totalColumn = readFile(in, "temp.vcf", 12) - 1;
+	*alignment = new Alignment("temp.vcf", params.sequence_type, params.intype, params.numStartRow);
+	(*alignment)->ungroupSitePattern();
+	std::remove("temp.vcf");
+
+	tree->setAlignment(*alignment);	
+	tree->aln = *alignment;
+
+	initialize(tree, *alignment);
+
+	while (true) {
+		int cnt = readFile(in, "temp.vcf", 8);
+		if(cnt == 0) {
+			break;
+		}
+		(*alignment)->readPartialVCF("temp.vcf", params.sequence_type, params.numStartRow, totalColumn);
+		tree->clearAllPartialLH();
+		totalColumn += cnt;
+		initialize(tree, *alignment);
+		std::remove("temp.vcf");
+		// break;
+	}
+	in.close();
+
+	return totalColumn;
+}
+
+void addMoreRowMutation(Params &params)
+{
+	Alignment *alignment;
+
+	IQTree *tree;
+	tree = new IQTree;
+
+	char *file_name = params.mutation_tree_file;
+	bool is_rooted = false;
+
+	if(params.tree_zip_file != NULL) {
+		tree->readTree(params.tree_zip_file, file_name, is_rooted);
+	} else {
+		tree->readTree(file_name, is_rooted);
+	}
+
+	int sz = readVCFFile(tree, &alignment, params);
 	// Init new tree's memory
 	tree->cur_missing_sample_mutations.resize(sz + 1);
 	tree->cur_ancestral_mutations.resize(sz + 1);
@@ -509,14 +533,14 @@ void addMoreRowMutation(Params &params)
 	tree->cur_excess_mutations.resize(sz + 1);
 	tree->visited_excess_mutations.resize(sz + 1);
 
-	tree->initMutation(permCol, compressedPermCol);
+	cout << "\n========== Start placement core ==========\n";
+	auto startTime = getCPUTime();
 
 	// free memory
 	delete[] tree->save_branch_states_dad;
 	tree->add_row = false;
 
-	cout << "Tree parsimony after init mutations: " << tree->computeParsimony() << " " << tree->computeParsimonyScoreMutation() << '\n';
-	
+	cout << "Tree parsimony after init mutations: " << tree->computeParsimonyScoreMutation() << '\n';
 	int numSample = (int)alignment->missingSamples.size();
 	vector<MutationNode> missingSamples(numSample);
 	for (int i = 0; i < (int)alignment->missingSamples.size(); ++i)
@@ -579,29 +603,29 @@ void addMoreRowMutation(Params &params)
 	tree->cur_excess_mutations.clear();
 	tree->visited_excess_mutations.clear();
 
-	ofstream fout("addedTree.txt");
-	tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
+	// ofstream fout("addedTree.txt");
+	// tree->printTree(fout, WT_SORT_TAXA | WT_NEWLINE);
 
-	stringstream ss;
-	tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
-	string treeAfterPhase1 = ss.str();
+	// stringstream ss;
+	// tree->printTree(ss, WT_SORT_TAXA | WT_NEWLINE);
+	// string treeAfterPhase1 = ss.str();
 
-	alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
-	// tree->checkMutation(pos);
-	params.numStartRow = alignment->getNSeq();
-	// params.numAddRow = 0;
+	// alignment->addToAlignmentNewSeq(alignment->remainName, alignment->remainSeq, savePermCol);
+	// // tree->checkMutation(pos);
+	// params.numStartRow = alignment->getNSeq();
+	// // params.numAddRow = 0;
 
-	cout << "========= Starting optimization =========\n";
-	const int start_time = getCPUTime();
-	if (params.ppoptspr) {
-		treeAfterPhase1 = ppRunOriginalSpr(alignment, params, treeAfterPhase1);
-	}
+	// cout << "========= Starting optimization =========\n";
+	// const int start_time = getCPUTime();
+	// if (params.ppoptspr) {
+	// 	treeAfterPhase1 = ppRunOriginalSpr(alignment, params, treeAfterPhase1);
+	// }
 
-	if (params.ppopttbr) {
-		treeAfterPhase1 = ppRunOriginalTbr(alignment, params, treeAfterPhase1);
-	}
-	const int end_time = getCPUTime();
-	cout << "Time: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
+	// if (params.ppopttbr) {
+	// 	treeAfterPhase1 = ppRunOriginalTbr(alignment, params, treeAfterPhase1);
+	// }
+	// const int end_time = getCPUTime();
+	// cout << "Time: " << fixed << setprecision(3) << (double)(end_time - start_time) << " seconds\n";
 	
 	
 	delete alignment;

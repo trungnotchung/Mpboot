@@ -969,7 +969,6 @@ int PhyloTree::computeParsimonyBranch(PhyloNeighbor* dad_branch, PhyloNode* dad,
     if ((node_branch->partial_lh_computed & 2) == 0)
         computePartialParsimony(node_branch, node);
     // now combine likelihood at the branch
-
     int pars_size = getBitsBlockSize();
     int entry_size = getBitsEntrySize();
     int ptn_pars_start_id = pars_size - nptn - 1;
@@ -989,7 +988,7 @@ int PhyloTree::computeParsimonyBranch(PhyloNeighbor* dad_branch, PhyloNode* dad,
                 UINT state_left = (states_left >> (i * 4)) & 15;
                 UINT state_right = (states_right >> (i * 4)) & 15;
                 UINT state_both = state_left | (state_right << 4);
-                // cout << state_left << " " << state_right << " " << dna_fitch_result[state_both] << endl;
+                // cout << state_left << " " << states_right << " " << state_right << " " << dna_fitch_result[state_both] << endl;
                 states_dad |= dna_fitch_result[state_both] << (i * 4);
                 tree_pars += dna_fitch_step[state_both] * aln->at(ptn + i).frequency;
                 _pattern_pars[ptn + i] = node_branch->partial_pars[ptn_pars_start_id + ptn + i] +
@@ -5375,7 +5374,6 @@ void PhyloTree::initMutation(vector<int>& permCol, vector<int> &compressedPermCo
 
     computeMutationBranch(permCol, compressedPermCol, (PhyloNeighbor*)root->neighbors[0], (PhyloNode*)root);
 
-    root_mutations.clear();
     int ptn = 0, pos = 0;
     int alnSize = aln->size();
     for(int i = 0; i < alnSize; ++i)
@@ -5410,6 +5408,10 @@ void PhyloTree::initMutation(vector<int>& permCol, vector<int> &compressedPermCo
             ++ptn;
         }
     }
+    // for(auto m : root_mutations)
+    // {
+    //     cout << m.get_string() << " ";
+    // }
 }
 
 int PhyloTree::computePartialParsimonyMutation(PhyloNeighbor* dad_branch, PhyloNode* dad)
