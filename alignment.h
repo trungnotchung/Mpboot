@@ -611,6 +611,8 @@ public:
         std::vector<std::string> remainName, remainSeq, saveCol;
 
         void addToAlignmentNewSeq(const string& newName, const string& newSeq, const vector<int>& permCol);
+        
+        void updateAlignmentNewSeq(const vector<string>& newSeqs, const vector<int>& permCol);
 
         void addToAlignmentNewSeq(const vector<string>& newNames, const vector<string>& newSeqs, const vector<int>& permCol);
 
@@ -620,7 +622,7 @@ public:
 
         vector<int> findPermCol();
 
-        int readPartialVCF(char* filename, char* sequence_type, int numStartRow, int startIndex);
+        int readPartialVCF(ifstream &in, char* sequence_type, vector<int>&permCol, int numStartRow, int startIndex, int numColumn);
 
         int readVCF(char* filename, char* sequence_type, int numStartRow, int startIndex = 0);
 

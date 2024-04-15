@@ -414,37 +414,21 @@ string ppRunOriginalSpr(Alignment *alignment, Params &params, string newickTree 
 	return newTreeString;
 }
 
-void initialize(IQTree *tree, Alignment *alignment) {
-	alignment->ungroupSitePattern();
-	tree->add_row = true;
-	tree->save_branch_states_dad = new UINT[(alignment->size() + 7) / 8 + 1];
-	cout << "Tree parsimony before add k rows: " << tree->computeParsimony() << '\n';
-	vector<int> permCol = alignment->findPermCol();
-	vector<int> savePermCol = permCol;
-	vector<int> compressedPermCol = permCol;
-	vector<int> pos;
-
+void initialize(IQTree *tree, Alignment *alignment, vector<int> &savePermCol, vector<int> &permCol, vector<int> &compressedPermCol) {
+	permCol.resize(savePermCol.size());
+	compressedPermCol.resize(savePermCol.size());
 	if (alignment->existingSamples.size())
 	{
-		for(int j = 0; j < permCol.size(); ++j) {
-			int p = permCol[j];
+		for(int j = 0; j < savePermCol.size(); ++j) {
+			int p = savePermCol[j];
 			compressedPermCol[j] = alignment->existingSamples[0][p].compressed_position;
 			permCol[j] = alignment->existingSamples[0][p].position;
 		}
 	}
-	else
-	{
-		for (auto &m : permCol)
-			m++;
-	}
-
-	for (int i = 0; i < (int)permCol.size(); ++i)
-	{
-		while ((int)pos.size() <= permCol[i])
-			pos.push_back(0);
-		pos[permCol[i]] = i;
-	}
-
+	alignment->ungroupSitePattern();
+	tree->add_row = true;
+	tree->save_branch_states_dad = new UINT[(alignment->size() + 7) / 8 + 1];
+	cout << "Tree parsimony before add k rows: " << tree->computeParsimony() << '\n';
 	tree->initMutation(permCol, compressedPermCol);
 }
 
@@ -481,6 +465,7 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 	string line;
     in.exceptions(ios::badbit);
 
+	// cout << "READVCFFILE1" << endl;
 	int totalColumn = readFile(in, "temp.vcf", 12) - 1;
 	*alignment = new Alignment("temp.vcf", params.sequence_type, params.intype, params.numStartRow);
 	(*alignment)->ungroupSitePattern();
@@ -489,22 +474,37 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 	tree->setAlignment(*alignment);	
 	tree->aln = *alignment;
 
-	initialize(tree, *alignment);
+	vector<int> permCol = (*alignment)->findPermCol();
+	vector<int> savePermCol = permCol;
+	vector<int> compressedPermCol = permCol;
+
+	// cout << "READVCFFILE2" << endl;
+	initialize(tree, *alignment, savePermCol, permCol, compressedPermCol);
+
+	auto startTime = getCPUTime();
+	double sumTimeReadPartialVCF = 0, sumTimeInitialize = 0;
 
 	while (true) {
-		int cnt = readFile(in, "temp.vcf", 8);
+		startTime = getCPUTime();
+		int cnt = (*alignment)->readPartialVCF(in, params.sequence_type, savePermCol, params.numStartRow, totalColumn, 8); 
 		if(cnt == 0) {
 			break;
 		}
-		(*alignment)->readPartialVCF("temp.vcf", params.sequence_type, params.numStartRow, totalColumn);
+		sumTimeReadPartialVCF += (double)(getCPUTime() - startTime);
+
+		// cout << "READVCFFILE5" << endl;
 		tree->clearAllPartialLH();
 		totalColumn += cnt;
-		initialize(tree, *alignment);
-		std::remove("temp.vcf");
-		// break;
+		startTime = getCPUTime();
+		initialize(tree, *alignment, savePermCol, permCol, compressedPermCol);
+		sumTimeInitialize += (double)(getCPUTime() - startTime);
 	}
-	in.close();
 
+	cout << "TimeReadPartialVCF: " << fixed << setprecision(3) << sumTimeReadPartialVCF << endl;
+	cout << "TimeInitialize: " << fixed << setprecision(3) << sumTimeInitialize << endl;
+
+	// cout << "READVCFFILE6" << endl;
+	in.close();
 	return totalColumn;
 }
 
