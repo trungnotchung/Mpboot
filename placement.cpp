@@ -465,7 +465,6 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 	string line;
     in.exceptions(ios::badbit);
 
-	// cout << "READVCFFILE1" << endl;
 	int totalColumn = readFile(in, "temp.vcf", 12) - 1;
 	*alignment = new Alignment("temp.vcf", params.sequence_type, params.intype, params.numStartRow);
 	(*alignment)->ungroupSitePattern();
@@ -478,7 +477,6 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 	vector<int> savePermCol = permCol;
 	vector<int> compressedPermCol = permCol;
 
-	// cout << "READVCFFILE2" << endl;
 	initialize(tree, *alignment, savePermCol, permCol, compressedPermCol);
 
 	auto startTime = getCPUTime();
@@ -492,7 +490,6 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 		}
 		sumTimeReadPartialVCF += (double)(getCPUTime() - startTime);
 
-		// cout << "READVCFFILE5" << endl;
 		tree->clearAllPartialLH();
 		totalColumn += cnt;
 		startTime = getCPUTime();
@@ -503,7 +500,6 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params) {
 	cout << "TimeReadPartialVCF: " << fixed << setprecision(3) << sumTimeReadPartialVCF << endl;
 	cout << "TimeInitialize: " << fixed << setprecision(3) << sumTimeInitialize << endl;
 
-	// cout << "READVCFFILE6" << endl;
 	in.close();
 	return totalColumn;
 }
@@ -534,7 +530,6 @@ void addMoreRowMutation(Params &params)
 	tree->visited_excess_mutations.resize(sz + 1);
 
 	cout << "\n========== Start placement core ==========\n";
-	auto startTime = getCPUTime();
 
 	// free memory
 	delete[] tree->save_branch_states_dad;
@@ -549,6 +544,8 @@ void addMoreRowMutation(Params &params)
 		missingSamples[i].name = alignment->remainName[i];
 	}
 	numSample = min(numSample, params.numAddRow);
+
+	auto startTime = getCPUTime();
 
 	for (int i = 0; i < numSample; ++i)
 	{
