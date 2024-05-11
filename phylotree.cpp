@@ -5467,7 +5467,6 @@ int PhyloTree::computeParsimonyScoreMutation()
 
     int parsimonyScore = 0;
     parsimonyScore += computeParsimonyBranchMutation((PhyloNeighbor*)root->neighbors[0], (PhyloNode*)root);
-    //loi fixed
     parsimonyScore += root_mutations.size();
     return parsimonyScore;
 }
