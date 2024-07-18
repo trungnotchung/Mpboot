@@ -416,7 +416,6 @@ sprparsimony.cpp
 test.cpp
 mutation.cpp
 placement.cpp
-matoptimize.cpp
 tbrparsimony.cpp
 )
 
