@@ -35,6 +35,7 @@
 #include "sprparsimony.h"
 #include "placement.h"
 #include <algorithm>
+#include <thread>
 
 void checkCorectTree(char *originTreeFile, char *newTreeFile)
 {
@@ -249,6 +250,57 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params)
 	return totalColumn;
 }
 
+CandidateNode calcBestBranchPlaceNode(vector<MutationNode> &missingSamples, IQTree *tree, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int i, int &timerRegular, int &timerOptimized)
+{
+	int totalNodes = (int)tree->bfs.size();
+	CandidateNode inp;
+	int bestSetDifference = INF;
+	size_t bestNodeNumLeaves = INF;
+	size_t bestDistance = INF;
+	std::vector<Mutation> excessMutations;
+	std::vector<bool> nodeHasUnique(totalNodes, false);
+	bool bestNodeHasUnique = false;
+	size_t bestJ = 0;
+
+	inp.best_node = NULL;
+	inp.best_node_branch = NULL;
+	inp.best_set_difference = &bestSetDifference;
+	inp.best_node_num_leaves = &bestNodeNumLeaves;
+	inp.best_distance = &bestDistance;
+	inp.node = (PhyloNode *)tree->root->neighbors[0]->node;
+	inp.node_branch = (PhyloNeighbor *)inp.node->findNeighbor(tree->root);
+	inp.missing_sample_mutations = &missingSamples[i].mutations;
+	inp.excess_mutations = &excessMutations;
+	inp.has_unique = &bestNodeHasUnique;
+	inp.node_has_unique = &(nodeHasUnique);
+	inp.best_j = &bestJ;
+
+	tree->initDataCalculatePlacementMutation(inp, visited_missing_sample_mutations, cur_missing_sample_mutations, timerOptimized);
+	tree->optimizedCalculatePlacementMutation(inp, 0, true, visited_missing_sample_mutations, cur_missing_sample_mutations, visited_ancestral_mutations, cur_ancestral_mutations, visited_excess_mutations, cur_excess_mutations, timerOptimized);
+
+	for (int j = 0; j < totalNodes; ++j)
+	{
+		if (inp.best_node == tree->bfs[j].first)
+		{
+			bestJ = j;
+			break;
+		}
+	}
+	*inp.best_set_difference = INF;
+	inp.j = bestJ;
+	inp.node = tree->bfs[bestJ].first;
+	inp.node_branch = tree->bfs[bestJ].second;
+	return inp;
+}
+
+void placeMutation(vector<MutationNode> &missingSamples, IQTree *tree, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int i, int &timerRegular, int &timerOptimized, CandidateNode &inp)
+{
+	std::vector<Mutation> excessMutations;
+	inp.excess_mutations = &excessMutations;
+	tree->calculatePlacementMutation(inp, false, true, visited_missing_sample_mutations, cur_missing_sample_mutations, visited_ancestral_mutations, cur_ancestral_mutations, timerRegular);
+	tree->addNewSample(inp.node, inp.node_branch, *inp.excess_mutations, i, missingSamples[i].name, visited_ancestral_mutations, cur_ancestral_mutations, visited_excess_mutations, cur_excess_mutations, timerRegular);
+}
+
 void addMoreRowMutation(Params &params)
 {
 	Alignment *alignment;
@@ -269,13 +321,24 @@ void addMoreRowMutation(Params &params)
 	}
 
 	int vecSize = readVCFFile(tree, &alignment, params) + 1;
+	const int NUM_THREADS = 3;
+
+	std::vector<std::vector<Mutation>> cur_excess_mutations, cur_missing_sample_mutations, cur_ancestral_mutations;
+	std::vector<std::vector<int>> visited_missing_sample_mutations, visited_ancestral_mutations;
+	std::vector<std::vector<int>> visited_excess_mutations;
+	std::vector<int> timerRegular, timerOptimized;
+
+	vector<std::future<CandidateNode>> result;
+
 	// Init new tree's memory
-	tree->cur_missing_sample_mutations.resize(vecSize);
-	tree->cur_ancestral_mutations.resize(vecSize);
-	tree->visited_missing_sample_mutations.resize(vecSize);
-	tree->visited_ancestral_mutations.resize(vecSize);
-	tree->cur_excess_mutations.resize(vecSize);
-	tree->visited_excess_mutations.resize(vecSize);
+	cur_missing_sample_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
+	cur_ancestral_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
+	visited_missing_sample_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
+	visited_ancestral_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
+	cur_excess_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
+	visited_excess_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
+	timerRegular.resize(NUM_THREADS, 0);
+	timerOptimized.resize(NUM_THREADS, 0);
 
 	cout << "\n========== Start placement core ==========\n";
 
@@ -295,60 +358,39 @@ void addMoreRowMutation(Params &params)
 
 	auto startTime = getCPUTime();
 
-	for (int i = 0; i < numSample; ++i)
+	for (int k = 0; k < numSample; k += NUM_THREADS)
 	{
-		vector<pair<PhyloNode *, PhyloNeighbor *>> bfs = tree->breadth_first_expansion();
-
-		int totalNodes = (int)bfs.size();
-		CandidateNode inp;
-		int bestSetDifference = INF;
-		size_t bestNodeNumLeaves = INF;
-		size_t bestDistance = INF;
-		std::vector<Mutation> excessMutations;
-		std::vector<bool> nodeHasUnique(totalNodes, false);
-		bool bestNodeHasUnique = false;
-		size_t bestJ = 0;
-
-		inp.best_set_difference = &bestSetDifference;
-		inp.best_node_num_leaves = &bestNodeNumLeaves;
-		inp.best_distance = &bestDistance;
-		inp.node = (PhyloNode *)tree->root->neighbors[0]->node;
-		inp.node_branch = (PhyloNeighbor *)inp.node->findNeighbor(tree->root);
-		inp.missing_sample_mutations = &missingSamples[i].mutations;
-		inp.excess_mutations = &excessMutations;
-		inp.has_unique = &bestNodeHasUnique;
-		inp.node_has_unique = &(nodeHasUnique);
-		inp.best_j = &bestJ;
-
-		tree->initDataCalculatePlacementMutation(inp);
-		tree->optimizedCalculatePlacementMutation(inp, 0, true);
-
-		for (int j = 0; j < totalNodes; ++j)
+		result.clear();
+		tree->breadth_first_expansion();
+		for (int i = k; i < min(numSample, k + NUM_THREADS); ++i)
 		{
-			if (inp.best_node == bfs[j].first)
-			{
-				bestJ = j;
-				break;
-			}
+			result.push_back(std::async(std::launch::async, calcBestBranchPlaceNode, std::ref(missingSamples), std::ref(tree),
+										std::ref(visited_missing_sample_mutations[i % NUM_THREADS]),
+										std::ref(cur_missing_sample_mutations[i % NUM_THREADS]),
+										std::ref(visited_ancestral_mutations[i % NUM_THREADS]),
+										std::ref(cur_ancestral_mutations[i % NUM_THREADS]),
+										std::ref(visited_excess_mutations[i % NUM_THREADS]),
+										std::ref(cur_excess_mutations[i % NUM_THREADS]), i,
+										std::ref(timerRegular[i % NUM_THREADS]),
+										std::ref(timerOptimized[i % NUM_THREADS])));
 		}
-		*inp.best_set_difference = INF;
-		inp.j = bestJ;
-		inp.node = bfs[bestJ].first;
-		inp.node_branch = bfs[bestJ].second;
-		tree->calculatePlacementMutation(inp, false, true);
-		tree->addNewSample(bfs[bestJ].first, bfs[bestJ].second, excessMutations, i, missingSamples[i].name);
+		for (int i = k; i < min(numSample, k + NUM_THREADS); ++i)
+		{
+			CandidateNode inp = result[i % NUM_THREADS].get();
+			placeMutation(missingSamples, tree, visited_missing_sample_mutations[i % NUM_THREADS], cur_missing_sample_mutations[i % NUM_THREADS], visited_ancestral_mutations[i % NUM_THREADS], cur_ancestral_mutations[i % NUM_THREADS], visited_excess_mutations[i % NUM_THREADS], cur_excess_mutations[i % NUM_THREADS], i, timerRegular[i % NUM_THREADS], timerOptimized[i % NUM_THREADS], inp);
+		}
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
 	cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
 	cout << "Memory: " << getMemory() << " KB\n";
 
 	// free memory
-	tree->cur_missing_sample_mutations.clear();
-	tree->cur_ancestral_mutations.clear();
-	tree->visited_missing_sample_mutations.clear();
-	tree->visited_ancestral_mutations.clear();
-	tree->cur_excess_mutations.clear();
-	tree->visited_excess_mutations.clear();
+	cur_missing_sample_mutations.clear();
+	cur_ancestral_mutations.clear();
+	visited_missing_sample_mutations.clear();
+	visited_ancestral_mutations.clear();
+	cur_excess_mutations.clear();
+	visited_excess_mutations.clear();
 
 	delete alignment;
 	alignment = NULL;

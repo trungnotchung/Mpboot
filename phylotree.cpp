@@ -94,8 +94,6 @@ void PhyloTree::init()
     nodeBranchDists = NULL;
     save_all_trees = NULL;
     add_row = false;
-    timerRegular = 0;
-    timerOptimized = 0;
 }
 
 PhyloTree::PhyloTree(Alignment *aln) : MTree()
@@ -6066,7 +6064,7 @@ int PhyloTree::computeParsimonyScoreMutation()
     return parsimonyScore;
 }
 
-vector<pair<PhyloNode *, PhyloNeighbor *>> PhyloTree::breadth_first_expansion()
+void PhyloTree::breadth_first_expansion()
 {
     assert(root->isLeaf());
     PhyloNeighbor *nei = ((PhyloNeighbor *)root->neighbors[0]);
@@ -6075,7 +6073,7 @@ vector<pair<PhyloNode *, PhyloNeighbor *>> PhyloTree::breadth_first_expansion()
     current_it_back = (PhyloNeighbor *)nei->node->findNeighbor(root);
     assert(current_it_back);
 
-    vector<pair<PhyloNode *, PhyloNeighbor *>> bfs;
+    bfs.clear();
     queue<pair<PhyloNode *, PhyloNeighbor *>> q;
     q.push(make_pair((PhyloNode *)nei->node, current_it_back));
     current_it_back->distance = 1;
@@ -6114,7 +6112,6 @@ vector<pair<PhyloNode *, PhyloNeighbor *>> PhyloTree::breadth_first_expansion()
             node_branch->num_leaves += ((PhyloNeighbor *)(*it)->node->findNeighbor(node))->num_leaves;
         }
     }
-    return bfs;
 }
 
 void PhyloTree::depth_first_search(PhyloNode *node, PhyloNode *dad)
@@ -6173,10 +6170,9 @@ void PhyloTree::depth_first_search()
     depth_first_search(node, (PhyloNode *)root);
 }
 
-void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_parsimony_scores, bool compute_vecs)
+void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_parsimony_scores, bool compute_vecs, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, int &timerRegular)
 {
     int set_difference = 0;
-    int best_set_difference = *input.best_set_difference;
     std::vector<int> anc_positions;
     std::vector<Mutation> ancestral_mutations;
     bool has_unique = false;
@@ -6235,13 +6231,13 @@ void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_pa
                             {
                                 (*input.excess_mutations).emplace_back(m);
                             }
-
                             found = true;
                             num_common_mut++;
                         }
                     }
                 }
             }
+
             if (!found)
             {
                 if (!found_pos && (anc_nuc == m1.ref_nuc))
@@ -6268,15 +6264,6 @@ void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_pa
                     has_unique = true;
                 }
             }
-        }
-    }
-    else
-    {
-        assert(false);
-        for (auto m : input.node_branch->mutations)
-        {
-            ancestral_mutations.emplace_back(m);
-            anc_positions.emplace_back(m.compressed_position);
         }
     }
 
@@ -6379,10 +6366,6 @@ void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_pa
                     input.excess_mutations->emplace_back(m);
                 }
                 set_difference += 1;
-                if (!compute_parsimony_scores && (set_difference > best_set_difference))
-                {
-                    return;
-                }
             }
         }
     }
@@ -6429,10 +6412,6 @@ void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_pa
             if (m.mut_nuc != m.par_nuc)
             {
                 set_difference += 1;
-                if (!compute_parsimony_scores && (set_difference > best_set_difference))
-                {
-                    return;
-                }
                 if (compute_vecs)
                 {
                     (*input.excess_mutations).emplace_back(m);
@@ -6445,39 +6424,9 @@ void PhyloTree::calculatePlacementMutation(CandidateNode &input, bool compute_pa
     {
         *input.set_difference = set_difference;
     }
-
-    if (set_difference > *input.best_set_difference)
-    {
-        return;
-    }
-    size_t num_leaves = input.node_branch->num_leaves;
-    if (set_difference < *input.best_set_difference)
-    {
-        *input.best_set_difference = set_difference;
-        *input.best_node_num_leaves = num_leaves;
-        *input.best_j = input.j;
-        *input.has_unique = has_unique;
-        *input.best_distance = input.distance;
-        (*input.node_has_unique)[input.j] = has_unique;
-    }
-    else if (set_difference == *input.best_set_difference)
-    {
-        if (((input.distance == *input.best_distance) &&
-             ((num_leaves > *input.best_node_num_leaves) ||
-              ((num_leaves == *input.best_node_num_leaves) && (*input.best_j < input.j)))) ||
-            (input.distance < *input.best_distance))
-        {
-            *input.best_set_difference = set_difference;
-            *input.best_node_num_leaves = num_leaves;
-            *input.best_j = input.j;
-            *input.has_unique = has_unique;
-            *input.best_distance = input.distance;
-        }
-        (*input.node_has_unique)[input.j] = has_unique;
-    }
 }
 
-void PhyloTree::initDataCalculatePlacementMutation(CandidateNode &inp)
+void PhyloTree::initDataCalculatePlacementMutation(CandidateNode &inp, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, int &timerOptimized)
 {
     ++timerOptimized;
     for (auto m : (*inp.missing_sample_mutations))
@@ -6487,7 +6436,7 @@ void PhyloTree::initDataCalculatePlacementMutation(CandidateNode &inp)
     }
 }
 
-void PhyloTree::eraseMutation(vector<Mutation> &erased_excess_mutation, Mutation m, int &set_difference)
+void PhyloTree::eraseMutation(vector<Mutation> &erased_excess_mutation, Mutation m, int &set_difference, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized)
 {
     if (visited_excess_mutations[m.compressed_position] == timerOptimized)
     {
@@ -6497,7 +6446,7 @@ void PhyloTree::eraseMutation(vector<Mutation> &erased_excess_mutation, Mutation
     }
 }
 
-void PhyloTree::addMutation(vector<Mutation> &added_excess_mutation, Mutation m, int diff, int &set_difference)
+void PhyloTree::addMutation(vector<Mutation> &added_excess_mutation, Mutation m, int diff, int &set_difference, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized)
 {
     added_excess_mutation.push_back(m);
     visited_excess_mutations[m.compressed_position] = timerOptimized;
@@ -6505,7 +6454,7 @@ void PhyloTree::addMutation(vector<Mutation> &added_excess_mutation, Mutation m,
     set_difference += diff;
 }
 
-void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int set_difference, bool firstNode)
+void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int set_difference, bool firstNode, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized)
 {
     int num_common_mut = 0;
     int best_set_difference = *input.best_set_difference;
@@ -6563,8 +6512,8 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
                             assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
 
                             found = true;
-                            eraseMutation(erased_excess_mutation, m, set_difference);
-                            addMutation(added_excess_mutation, m, 0, set_difference);
+                            eraseMutation(erased_excess_mutation, m, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
+                            addMutation(added_excess_mutation, m, 0, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
                             common_mutations.emplace_back(m);
                             ++num_common_mut;
                         }
@@ -6585,8 +6534,8 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
                     ancestral_mutations.emplace_back(m);
                     anc_positions.emplace_back(m.compressed_position);
                     assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
-                    eraseMutation(erased_excess_mutation, m, set_difference);
-                    addMutation(added_excess_mutation, m, 0, set_difference);
+                    eraseMutation(erased_excess_mutation, m, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
+                    addMutation(added_excess_mutation, m, 0, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
                     common_mutations.emplace_back(m);
                     ++num_common_mut;
                 }
@@ -6693,7 +6642,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
                 assert((m.mut_nuc & (m.mut_nuc - 1)) == 0);
                 if (m.mut_nuc != m.par_nuc)
                 {
-                    addMutation(added_excess_mutation, m, 1, set_difference);
+                    addMutation(added_excess_mutation, m, 1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
                 }
             }
         }
@@ -6728,7 +6677,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
         }
         else
         {
-            eraseMutation(erased_excess_mutation, m1, set_difference);
+            eraseMutation(erased_excess_mutation, m1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
             Mutation m;
             m.position = m1.position;
             m.compressed_position = m1.compressed_position;
@@ -6738,7 +6687,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
             assert(m.is_masked() || ((m.mut_nuc & (m.mut_nuc - 1)) == 0));
             if (m.mut_nuc != m.par_nuc)
             {
-                addMutation(added_excess_mutation, m, 1, set_difference);
+                addMutation(added_excess_mutation, m, 1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
             }
         }
     }
@@ -6783,10 +6732,10 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
         {
             m1.mut_nuc = cur_missing_sample_mutations[m.compressed_position].mut_nuc;
         }
-        eraseMutation(erased_excess_mutation, m1, set_difference);
+        eraseMutation(erased_excess_mutation, m1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
         if (m1.mut_nuc != m1.par_nuc)
         {
-            addMutation(added_excess_mutation, m1, 1, set_difference);
+            addMutation(added_excess_mutation, m1, 1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);
         }
     }
     common_mutations.clear();
@@ -6800,7 +6749,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
         PhyloNeighbor *childNodeBranch = (PhyloNeighbor *)childNode->findNeighbor(node);
         input.node = childNode;
         input.node_branch = childNodeBranch;
-        optimizedCalculatePlacementMutation(input, set_difference, false);
+        optimizedCalculatePlacementMutation(input, set_difference, false, visited_missing_sample_mutations, cur_missing_sample_mutations, visited_ancestral_mutations, cur_ancestral_mutations, visited_excess_mutations, cur_excess_mutations, timerOptimized);
     }
 
     for (auto m : added_excess_mutation)
@@ -6816,7 +6765,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
     }
 }
 
-void PhyloTree::addNewSample(PhyloNode *best_node, PhyloNeighbor *best_node_branch, std::vector<Mutation> node_excess_mutations, int index, std::string sample_name)
+void PhyloTree::addNewSample(PhyloNode *best_node, PhyloNeighbor *best_node_branch, std::vector<Mutation> node_excess_mutations, int index, std::string sample_name, std::vector<int> &visited_ancestral_mutations, std::vector<Mutation> &cur_ancestral_mutations, std::vector<int> &visited_excess_mutations, std::vector<Mutation> &cur_excess_mutations, int &timerRegular)
 {
     PhyloNode *new_node = (PhyloNode *)newNode();
     PhyloNode *sample = (PhyloNode *)newNode(aln->getNSeq() + index, sample_name.c_str());
@@ -6902,6 +6851,10 @@ void PhyloTree::addNewSample(PhyloNode *best_node, PhyloNeighbor *best_node_bran
     new_node->addNeighbor(best_dad, -1.0);
     best_node->updateNeighbor(best_dad, new_node, -1.0);
     best_dad->updateNeighbor(best_node, new_node, -1.0);
+
+    new_node->dad = best_dad;
+    best_node->dad = new_node;
+    sample->dad = new_node;
     // Add mutations to new node using common_mut
     PhyloNeighbor *new_node_branch = (PhyloNeighbor *)new_node->findNeighbor(best_dad);
     for (auto m : common_mut)

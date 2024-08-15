@@ -7,6 +7,7 @@
 #include "nnisearch.h"
 #include "mutation.h"
 #include "fstream"
+#include  <future>
 #include <filesystem>
 
 const int INF = (int)1e9 + 7;
@@ -21,4 +22,5 @@ void addMoreRowMutation(Params &params);
 
 // check if origin tree doesn't change.
 void checkCorrectTree(char *originTreeFile, char *newTreeFile);
+
 #endif

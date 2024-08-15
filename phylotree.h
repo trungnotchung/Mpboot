@@ -298,6 +298,7 @@ public:
                 @param tree the tree to copy
          */
 
+        vector<pair<PhyloNode *, PhyloNeighbor *>> bfs;
         bool add_row;
         UINT *save_branch_states_dad;
         vector<Mutation> root_mutations;
@@ -316,29 +317,24 @@ public:
 
         int computePartialParsimonyMutation(PhyloNeighbor *dad_branch, PhyloNode *dad);
 
-        std::vector<std::pair<PhyloNode *, PhyloNeighbor *>> breadth_first_expansion();
+        void breadth_first_expansion();
 
         void depth_first_search(PhyloNode *node, PhyloNode *dad);
 
         void depth_first_search();
 
-        std::vector<Mutation> cur_excess_mutations, cur_missing_sample_mutations, cur_ancestral_mutations;
-        std::vector<int> visited_missing_sample_mutations, visited_ancestral_mutations;
-        std::vector<int> visited_excess_mutations;
-        int timerOptimized, timerRegular;
-
         // calculate new mutations
-        void calculatePlacementMutation(CandidateNode &input, bool compute_parsimony_scores = false, bool compute_vecs = false);
+        void calculatePlacementMutation(CandidateNode &input, bool compute_parsimony_scores, bool compute_vecs, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, int &timerRegular);
 
-        void initDataCalculatePlacementMutation(CandidateNode &inp);
+        void initDataCalculatePlacementMutation(CandidateNode &inp, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, int &timerOptimized);
 
-        void eraseMutation(vector<Mutation> &erase_excess_mutations, Mutation m, int &set_difference);
+        void eraseMutation(vector<Mutation> &erase_excess_mutations, Mutation m, int &set_difference, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized);
 
-        void addMutation(vector<Mutation> &added_excess_mutations, Mutation m, int diff, int &set_difference);
+        void addMutation(vector<Mutation> &addepd_excess_mutations, Mutation m, int diff, int &set_difference, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized);
 
-        void optimizedCalculatePlacementMutation(CandidateNode &input, int set_difference = 0, bool firstNode = false);
+        void optimizedCalculatePlacementMutation(CandidateNode &input, int set_difference, bool firstNode, vector<int> &visited_missing_sample_mutations, vector<Mutation> &cur_missing_sample_mutations, vector<int> &visited_ancestral_mutations, vector<Mutation> &cur_ancestral_mutations, vector<int> &visited_excess_mutations, vector<Mutation> &cur_excess_mutations, int &timerOptimized);
 
-        void addNewSample(PhyloNode *best_node, PhyloNeighbor *best_node_branch, std::vector<Mutation> node_excess_mutations, int index, std::string name);
+        void addNewSample(PhyloNode *best_node, PhyloNeighbor *best_node_branch, std::vector<Mutation> node_excess_mutations, int index, std::string name, std::vector<int> &visited_ancestral_mutations, std::vector<Mutation> &cur_ancestral_mutations, std::vector<int> &visited_excess_mutations, std::vector<Mutation> &cur_excess_mutations, int &timerRegular);
 
         void checkMutation(vector<int> &pos);
 
