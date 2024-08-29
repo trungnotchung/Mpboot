@@ -218,7 +218,7 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params)
 	in.exceptions(ios::badbit);
 
 	int totalColumn = readFile(in, "temp.vcf", 12) - 1;
-	*alignment = new Alignment("temp.vcf", params.sequence_type, params.intype, params.numStartRow);
+	*alignment = new Alignment("temp.vcf", params.sequence_type, params.intype, params.num_start_row);
 	(*alignment)->ungroupSitePattern();
 	std::remove("temp.vcf");
 
@@ -234,7 +234,7 @@ int readVCFFile(IQTree *tree, Alignment **alignment, Params &params)
 	while (true)
 	{
 		startTime = getCPUTime();
-		int numColumn = (*alignment)->readPartialVCF(in, params.sequence_type, savePermCol, params.numStartRow, totalColumn, 8);
+		int numColumn = (*alignment)->readPartialVCF(in, params.sequence_type, savePermCol, params.num_start_row, totalColumn, 8);
 		if (numColumn == 0)
 		{
 			break;
@@ -321,24 +321,16 @@ void addMoreRowMutation(Params &params)
 	}
 
 	int vecSize = readVCFFile(tree, &alignment, params) + 1;
-	const int NUM_THREADS = 3;
 
-	std::vector<std::vector<Mutation>> cur_excess_mutations, cur_missing_sample_mutations, cur_ancestral_mutations;
-	std::vector<std::vector<int>> visited_missing_sample_mutations, visited_ancestral_mutations;
-	std::vector<std::vector<int>> visited_excess_mutations;
-	std::vector<int> timerRegular, timerOptimized;
-
-	vector<std::future<CandidateNode>> result;
-
-	// Init new tree's memory
-	cur_missing_sample_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
-	cur_ancestral_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
-	visited_missing_sample_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
-	visited_ancestral_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
-	cur_excess_mutations.resize(NUM_THREADS, std::vector<Mutation>(vecSize));
-	visited_excess_mutations.resize(NUM_THREADS, std::vector<int>(vecSize));
-	timerRegular.resize(NUM_THREADS, 0);
-	timerOptimized.resize(NUM_THREADS, 0);
+	vector<vector<Mutation>> cur_excess_mutations(params.pp_thread, vector<Mutation>(vecSize, Mutation()));
+	vector<vector<Mutation>> cur_missing_sample_mutations(params.pp_thread, vector<Mutation>(vecSize, Mutation()));
+	vector<vector<Mutation>> cur_ancestral_mutations(params.pp_thread, vector<Mutation>(vecSize, Mutation()));
+	vector<vector<int>> visited_missing_sample_mutations(params.pp_thread, vector<int>(vecSize, 0));
+	vector<vector<int>> visited_ancestral_mutations(params.pp_thread, vector<int>(vecSize, 0));
+	vector<vector<int>> visited_excess_mutations(params.pp_thread, vector<int>(vecSize, 0));
+	vector<int> timerRegular(params.pp_thread), timerOptimized(params.pp_thread);
+	vector<future<CandidateNode>> result(params.pp_thread);
+	vector<CandidateNode> candidates(params.pp_thread);
 
 	cout << "\n========== Start placement core ==========\n";
 
@@ -354,43 +346,45 @@ void addMoreRowMutation(Params &params)
 		missingSamples[i].mutations = alignment->missingSamples[i];
 		missingSamples[i].name = alignment->remainName[i];
 	}
-	numSample = min(numSample, params.numAddRow);
+	numSample = min(numSample, params.num_add_row);
 
 	auto startTime = getCPUTime();
 
-	for (int k = 0; k < numSample; k += NUM_THREADS)
+	for (int sample = 0; sample < numSample; sample += params.pp_thread)
 	{
-		result.clear();
+		int r = 0;
 		tree->breadth_first_expansion();
-		for (int i = k; i < min(numSample, k + NUM_THREADS); ++i)
+		for (int i = sample; i < min(numSample, sample + params.pp_thread); ++i)
 		{
-			result.push_back(std::async(std::launch::async, calcBestBranchPlaceNode, std::ref(missingSamples), std::ref(tree),
-										std::ref(visited_missing_sample_mutations[i % NUM_THREADS]),
-										std::ref(cur_missing_sample_mutations[i % NUM_THREADS]),
-										std::ref(visited_ancestral_mutations[i % NUM_THREADS]),
-										std::ref(cur_ancestral_mutations[i % NUM_THREADS]),
-										std::ref(visited_excess_mutations[i % NUM_THREADS]),
-										std::ref(cur_excess_mutations[i % NUM_THREADS]), i,
-										std::ref(timerRegular[i % NUM_THREADS]),
-										std::ref(timerOptimized[i % NUM_THREADS])));
+			result[r] = (std::async(std::launch::async, calcBestBranchPlaceNode, std::ref(missingSamples), std::ref(tree),
+									std::ref(visited_missing_sample_mutations[r]),
+									std::ref(cur_missing_sample_mutations[r]),
+									std::ref(visited_ancestral_mutations[r]),
+									std::ref(cur_ancestral_mutations[r]),
+									std::ref(visited_excess_mutations[r]),
+									std::ref(cur_excess_mutations[r]), i,
+									std::ref(timerRegular[r]),
+									std::ref(timerOptimized[r])));
+			++r;
 		}
-		for (int i = k; i < min(numSample, k + NUM_THREADS); ++i)
+
+		r = 0;
+		for (int i = sample; i < min(numSample, sample + params.pp_thread); ++i)
 		{
-			CandidateNode inp = result[i % NUM_THREADS].get();
-			placeMutation(missingSamples, tree, visited_missing_sample_mutations[i % NUM_THREADS], cur_missing_sample_mutations[i % NUM_THREADS], visited_ancestral_mutations[i % NUM_THREADS], cur_ancestral_mutations[i % NUM_THREADS], visited_excess_mutations[i % NUM_THREADS], cur_excess_mutations[i % NUM_THREADS], i, timerRegular[i % NUM_THREADS], timerOptimized[i % NUM_THREADS], inp);
+			candidates[r] = (result[r].get());
+			++r;
+		}
+
+		r = 0;
+		for (int i = sample; i < min(numSample, sample + params.pp_thread); ++i)
+		{
+			placeMutation(missingSamples, tree, visited_missing_sample_mutations[i % params.pp_thread], cur_missing_sample_mutations[i % params.pp_thread], visited_ancestral_mutations[i % params.pp_thread], cur_ancestral_mutations[i % params.pp_thread], visited_excess_mutations[i % params.pp_thread], cur_excess_mutations[i % params.pp_thread], i, timerRegular[i % params.pp_thread], timerOptimized[i % params.pp_thread], candidates[r]);
+			++r;
 		}
 	}
 	cout << "New tree's parsimony score: " << tree->computeParsimonyScoreMutation() << '\n';
 	cout << "Time: " << fixed << setprecision(3) << (double)(getCPUTime() - startTime) << " seconds\n";
 	cout << "Memory: " << getMemory() << " KB\n";
-
-	// free memory
-	cur_missing_sample_mutations.clear();
-	cur_ancestral_mutations.clear();
-	visited_missing_sample_mutations.clear();
-	visited_ancestral_mutations.clear();
-	cur_excess_mutations.clear();
-	visited_excess_mutations.clear();
 
 	delete alignment;
 	alignment = NULL;

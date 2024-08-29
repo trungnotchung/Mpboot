@@ -643,7 +643,7 @@ void IQTree::initializePLL(Params &params)
     pllAttr.saveMemory = PLL_FALSE;
     pllAttr.useRecom = PLL_FALSE;
     pllAttr.randomNumberSeed = params.ran_seed;
-    pllAttr.numAddRows = params.numAddRow;
+    pllAttr.numAddRows = params.num_add_row;
 #ifdef _OPENMP
     pllAttr.numberOfThreads = params.num_threads; /* This only affects the pthreads version */
 #else
@@ -5339,7 +5339,7 @@ int IQTree::addRemainRowSPR(const vector<string> &remainRowName, const vector<st
     pllTreeInitTopologyNewick(pllInst, newick, PLL_FALSE);
     pllNewickParseDestroy(&newick);
     _allocateParsimonyDataStructures(pllInst, pllPartitions, false);
-    pllInst->ntips = params.numStartRow;
+    pllInst->ntips = params.num_start_row;
     int score = _pllAddMoreRow(pllInst, pllPartitions);
     _pllFreeParsimonyDataStructures(pllInst, pllPartitions);
     delete newick;

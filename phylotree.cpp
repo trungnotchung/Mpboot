@@ -6608,15 +6608,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
                     }
                 }
             }
-            if (found)
-            {
-            }
-            else if (!found_pos && has_ref)
-            {
-            }
-            else if (found_pos && !found)
-            {
-            }
+            if (found || (!found_pos && has_ref) || found_pos && !found) {}
             else
             {
                 Mutation m;
@@ -6669,12 +6661,7 @@ void PhyloTree::optimizedCalculatePlacementMutation(CandidateNode &input, int se
                 }
             }
         }
-        if (found)
-        {
-        }
-        else if (!found_pos && !m1.is_masked() && (anc_nuc == m1.ref_nuc))
-        {
-        }
+        if (found || (!found_pos && !m1.is_masked() && (anc_nuc == m1.ref_nuc))) {}
         else
         {
             eraseMutation(erased_excess_mutation, m1, set_difference, visited_excess_mutations, cur_excess_mutations, timerOptimized);

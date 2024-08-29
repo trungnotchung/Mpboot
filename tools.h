@@ -541,12 +541,12 @@ struct Params
         /**
          *  Number of starting row
          */
-        int numStartRow;
+        int num_start_row;
 
         /**
          * Number of adding row
          */
-        int numAddRow;
+        int num_add_row;
 
         /**
          * Tree file name
@@ -567,6 +567,11 @@ struct Params
          * Checking correct tree
          */
         bool pp_test_optimize;
+
+        /**
+         * Number of threads
+         */
+        int pp_thread;
 
         /**
          * Tree zip file name
