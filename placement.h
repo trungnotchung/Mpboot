@@ -7,8 +7,7 @@
 #include "nnisearch.h"
 #include "mutation.h"
 #include "fstream"
-#include  <future>
-#include <filesystem>
+#include <future>
 
 const int INF = (int)1e9 + 7;
 
