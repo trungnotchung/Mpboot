@@ -935,6 +935,60 @@ void PhyloTree::computePartialParsimony(PhyloNeighbor *dad_branch, PhyloNode *da
     delete[] bits_entry;
 }
 
+vector<pair<PhyloNeighbor*, PhyloNode*> > PhyloTree::breadthFirstExpansion(PhyloNeighbor *dad_branch, PhyloNode *dad)
+{
+    PhyloNode *node = (PhyloNode*) dad_branch->node;
+    PhyloNeighbor *node_branch = (PhyloNeighbor*) node->findNeighbor(dad);
+    vector<pair<PhyloNeighbor*, PhyloNode*> > result;
+    queue<pair<PhyloNeighbor*, PhyloNode*> > q;
+
+    q.push(make_pair(dad_branch, dad));
+    q.push(make_pair(node_branch, node));
+    node->dependency = 0;
+    dad->dependency = 0;
+    while(q.size()) {
+        PhyloNeighbor *cur_dad_branch = q.front().first;
+        PhyloNode *cur_dad = q.front().second;
+        q.pop();
+        if (cur_dad_branch->partial_lh_computed & 2)
+            continue;
+        cur_dad->dependency++;
+        result.push_back(make_pair(cur_dad_branch, cur_dad));
+        
+        PhyloNode *cur_node = (PhyloNode*) cur_dad_branch->node;
+        cur_node->dependency = 0;
+        if (cur_node->isLeaf() && cur_dad)
+            continue;
+        FOR_NEIGHBOR_IT(cur_node, cur_dad, it)if ((*it)->node->name != ROOT_NAME) {
+            q.push(make_pair((PhyloNeighbor*) (*it), cur_node));
+        }
+    }
+    return result;
+}
+
+void PhyloTree::computeParsimonyMultiThread(vector<pair<PhyloNeighbor*, PhyloNode*> > &branch_list) {
+    while (branch_list.size()) {
+        vector<thread> threads;
+        for (int i = 0; i < params->pp_thread; ++i) {
+            if (branch_list.empty())
+                break;
+            PhyloNeighbor *dad_branch = branch_list.back().first;
+            PhyloNode *dad = branch_list.back().second;
+            PhyloNode *node = (PhyloNode*) dad_branch->node;
+            assert(node->dependency >= 0);
+            if (node->dependency == 0) {
+                branch_list.pop_back();
+                threads.push_back(thread(&PhyloTree::computePartialParsimony, this, dad_branch, dad));
+                dad->dependency--;
+            } else {
+                break;
+            }
+        }
+        for (auto &thread : threads)
+            thread.join();
+    }
+}
+
 int PhyloTree::computeParsimonyBranch(PhyloNeighbor *dad_branch, PhyloNode *dad, int *branch_subst) {
     PhyloNode *node = (PhyloNode*) dad_branch->node;
     PhyloNeighbor *node_branch = (PhyloNeighbor*) node->findNeighbor(dad);
@@ -956,10 +1010,12 @@ int PhyloTree::computeParsimonyBranch(PhyloNeighbor *dad_branch, PhyloNode *dad,
     if(!_pattern_pars) _pattern_pars = aligned_alloc<BootValTypePars>(nptn+VCSIZE_USHORT);
     memset(_pattern_pars, 0, sizeof(BootValTypePars) * (nptn+VCSIZE_USHORT));
 
-    if ((dad_branch->partial_lh_computed & 2) == 0)
-        computePartialParsimony(dad_branch, dad);
-    if ((node_branch->partial_lh_computed & 2) == 0)
-        computePartialParsimony(node_branch, node);
+    vector<pair<PhyloNeighbor*, PhyloNode*> > bfs = breadthFirstExpansion(dad_branch, dad);
+    computeParsimonyMultiThread(bfs);
+    // if ((dad_branch->partial_lh_computed & 2) == 0)
+    //     computePartialParsimony(dad_branch, dad);
+    // if ((node_branch->partial_lh_computed & 2) == 0)
+    //     computePartialParsimony(node_branch, node);
     // now combine likelihood at the branch
 
     int pars_size = getBitsBlockSize();

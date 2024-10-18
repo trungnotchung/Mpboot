@@ -31,6 +31,7 @@
 #include "optimization.h"
 #include "model/rateheterogeneity.h"
 #include "phyloanalysis.h"
+#include "thread"
 
 const double MIN_BRANCH_LEN = 0.000001; // NEVER TOUCH THIS CONSTANT AGAIN PLEASE!
 const double MAX_BRANCH_LEN = 100.0;
@@ -447,6 +448,10 @@ public:
             @return parsimony score of the tree
      */
     virtual int computeParsimonyBranch(PhyloNeighbor *dad_branch, PhyloNode *dad, int *branch_subst = NULL);
+
+    void computeParsimonyMultiThread(vector<pair<PhyloNeighbor*, PhyloNode*> > &branch_list);
+
+    vector<pair<PhyloNeighbor*, PhyloNode*> > breadthFirstExpansion(PhyloNeighbor *dad_branch, PhyloNode *dad);
 
     void printParsimonyStates(PhyloNeighbor *dad_branch = NULL, PhyloNode *dad = NULL);
 
