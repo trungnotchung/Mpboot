@@ -969,6 +969,7 @@ vector<pair<PhyloNeighbor*, PhyloNode*> > PhyloTree::breadthFirstExpansion(Phylo
 void PhyloTree::computeParsimonyMultiThread(vector<pair<PhyloNeighbor*, PhyloNode*> > &branch_list) {
     while (branch_list.size()) {
         vector<thread> threads;
+        vector<PhyloNode*> save_dads;
         for (int i = 0; i < params->pp_thread; ++i) {
             if (branch_list.empty())
                 break;
@@ -979,13 +980,16 @@ void PhyloTree::computeParsimonyMultiThread(vector<pair<PhyloNeighbor*, PhyloNod
             if (node->dependency == 0) {
                 branch_list.pop_back();
                 threads.push_back(thread(&PhyloTree::computePartialParsimony, this, dad_branch, dad));
-                dad->dependency--;
+                save_dads.push_back(dad);
             } else {
                 break;
             }
         }
         for (auto &thread : threads)
             thread.join();
+        for (auto &dad : save_dads) {
+            dad->dependency--;
+        }
     }
 }
 
